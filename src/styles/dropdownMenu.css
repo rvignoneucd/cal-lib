@@ -1,0 +1,83 @@
+/* Site-wide dropdown menu: the options float as separate pills, 3px apart,
+   with no panel, border or shadow behind them. Each pill uses the shared
+   control tokens (styles/controls.css), so it matches the trigger button.
+   Covers menus inside the app and menus portaled to <body>.
+
+   The repeated class raises specificity above the older per-theme menu
+   rules in App.css, without !important. */
+
+:root .dropdown-menu.dropdown-menu {
+  box-sizing: border-box;
+  top: calc(100% + var(--control-popover-gap, 4px));
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.pill-select { display: block; min-width: 0; position: relative; }
+.pill-select > .dropdown { width: 100%; }
+.pill-select .dropdown-trigger { min-height: var(--control-height); border: 1px solid var(--control-border); border-radius: var(--control-radius); background: var(--control-surface); color: var(--control-text); }
+.pill-select-validation { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.dropdown-menu-portal .dropdown-option-label { white-space: normal; overflow-wrap: anywhere; }
+:root .dropdown-menu.dropdown-menu .dropdown-option:disabled { opacity: 0.5; cursor: not-allowed; }
+
+:root .dropdown-menu.dropdown-menu .dropdown-option {
+  box-sizing: border-box;
+  flex: none;
+  height: auto;
+  min-height: var(--control-compact-height, 26px);
+  padding: 4px 12px;
+  border: 1px solid var(--control-border);
+  border-radius: var(--control-radius, 999px);
+  background: var(--control-surface);
+  color: var(--control-text);
+  box-shadow: none;
+  font-size: var(--control-font-size, 12px);
+  font-weight: 500;
+}
+
+:root .dropdown-menu.dropdown-menu .dropdown-option:hover {
+  background: var(--control-hover);
+  border-color: var(--control-focus);
+  color: var(--control-text);
+}
+
+:root .dropdown-menu.dropdown-menu .dropdown-option.selected,
+:root .dropdown-menu.dropdown-menu .dropdown-option.selected:hover {
+  background: var(--control-surface);
+  color: var(--control-text);
+  font-weight: 700;
+  box-shadow: none;
+}
+
+:root .dropdown-menu.dropdown-menu .dropdown-option.selected:hover {
+  background: var(--control-hover);
+}
+
+:root .dropdown-menu.dropdown-menu .dropdown-empty {
+  padding: 4px 12px;
+  border: 1px solid var(--control-border);
+  border-radius: var(--control-radius, 999px);
+  background: var(--control-surface);
+  color: var(--atmos-ui-muted);
+  font-size: var(--control-font-size, 12px);
+}
+
+/* Open trigger: the same control pill with a teal focus ring, everywhere.
+   Replaces the older per-area open states (purple gradient on the plot
+   header, light blue in the trace bar). Repeated class for specificity. */
+:root .dropdown.dropdown.dropdown.open .dropdown-trigger,
+:root .dropdown.dropdown.dropdown.open .dropdown-trigger:hover:not(:disabled) {
+  background: var(--control-surface);
+  border-color: var(--control-focus);
+  color: var(--control-text);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--control-focus) 35%, transparent);
+}
+
+:root .dropdown.dropdown.dropdown.open .dropdown-trigger svg {
+  color: var(--control-focus);
+}

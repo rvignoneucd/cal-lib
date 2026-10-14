@@ -1,0 +1,28 @@
+.atmos-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  vertical-align: middle;
+}
+.atmos-chevron > svg { width: 17.5px; height: 17.5px; flex: none; }
+/* Disclosure arrows are plain in every theme; the button retains its hit area. */
+:root .atmos-chevron,
+:root .atmos-chevron > svg {
+  color: var(--control-text, #475569) !important;
+}
+:root .atmos-chevron > svg {
+  stroke: currentColor;
+}
+:root .app-shell button:has(> .atmos-chevron),
+:root .app-shell button:has(> .atmos-chevron):is(:hover, :focus, :active) {
+  background: transparent !important;
+  border-color: transparent !important;
+  border-radius: 4px;
+  box-shadow: none;
+  color: var(--control-text, #475569) !important;
+}
+:root .app-shell button:has(> .atmos-chevron):focus-visible {
+  outline: 2px solid var(--control-focus);
+  outline-offset: -2px;
+}

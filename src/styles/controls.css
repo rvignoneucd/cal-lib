@@ -1,0 +1,903 @@
+/* Shared control contract: the profile pill is the standard, at every desktop
+   density. Compact actions retain the same treatment without inflating tables. */
+:root {
+  --auto-area-fill-color: #eab308;
+  --auto-area-ruler-color: #856000;
+}
+:root[data-theme='dark'] { --auto-area-ruler-color: #facc15; }
+:root .app-shell .result-type-icon.measure.auto-area-pending,
+:root .app-shell .file-browser .file-row-annotation-status.measure.auto-area-pending {
+  color: var(--auto-area-ruler-color);
+}
+/* Retain the gutters so slider handle centers stay aligned with the plot. */
+.workspace .y-max-clip-readout,
+.workspace .x-range-value,
+.workspace .time-scrubber-edge { visibility: hidden; }
+.workspace .plot-zoom-band .x-range-control {
+  grid-template-columns: var(--zoom-left, 69px) minmax(0, 1fr) var(--zoom-right, 69px);
+  gap: 0;
+}
+.workspace .plot-zoom-band .x-range-value { width: 100%; }
+:root .app-shell .workspace > .plot-panel > .plot-body > .time-scrubber {
+  position: relative;
+  grid-template-columns: var(--timeline-left, 69px) minmax(0, 1fr) var(--timeline-right, 69px);
+  gap: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+.workspace .time-scrubber-edge { grid-column: 1; grid-row: 1; width: 100%; }
+.workspace .time-scrubber-track-wrap { grid-column: 2; grid-row: 1; }
+.workspace .time-scrubber-end { grid-column: 3; grid-row: 1; text-align: left; padding-left: 12px; font-variant-numeric: tabular-nums; }
+:root .app-shell .workspace .time-scrubber-bookmark {
+  position: absolute; right: 9px; width: 34px; height: 34px;
+  min-height: 34px; padding: 0; border-radius: 50%;
+  background: var(--control-surface); color: var(--control-text); border: 1px solid var(--control-border);
+}
+.workspace .time-scrubber-end { visibility: hidden; }
+:root .app-shell .workspace .time-scrubber input[type='range'] {
+  width: calc(100% + 16px); flex: none; margin-left: -8px; margin-right: -8px;
+}
+:root .app-shell .ms-spectrum-row .plot-title-heading { flex: 0 0 calc(50% - 16px); min-width: 0; }
+.app-shell .ms-spectrum-row .plot-title-copy { width: 100%; min-width: 0; }
+:root .app-shell .ms-spectrum-row .plot-title-actions { flex: 1; max-width: none; justify-content: flex-end; }
+.tool-peak-readout { user-select: none; -webkit-user-select: none; }
+.spectrum-main-header { display: flex; align-items: center; gap: 4px 12px; min-width: 0; flex-wrap: wrap; }
+.spectrum-main-header .plot-title-chevron-button { min-width: 0; }
+:root .app-shell .workspace .ms-spectrum-row .plot-title { height: auto; min-height: 50px; padding-block: 8px; box-sizing: border-box; }
+:root .app-shell .spectrum-main-header .plot-title-chevron-button > span { white-space: normal; }
+.spectrum-main-header .spectrum-compound-title { margin-left: auto; flex: 0 1 auto; text-align: right; }
+:root .app-shell .ms-spectrum-row .spectrum-scrub-rt {
+  display: inline; font-size: 16px; font-weight: 700; color: var(--atmos-rt-accent);
+  font-variant-numeric: tabular-nums;
+}
+.copy-peak-tags-dialog input[type='range'],
+.design-window input:is([type='range'], [type='checkbox'], [type='radio']) {
+  accent-color: var(--control-focus);
+}
+:root:not([data-theme='dark']) .app-shell .app-header {
+  background: #f8fafc;
+  border-bottom-color: var(--control-border);
+  color: var(--control-text);
+}
+:root:not([data-theme='dark']) .app-header .brand-copy strong {
+  color: #0f172a;
+}
+:root:not([data-theme='dark']) .app-header .brand-copy span {
+  color: #475569;
+}
+:root:not([data-theme='dark']) .app-header :is(.dropdown-trigger svg, .header-chat-button, .profile-trigger svg) {
+  color: var(--control-text);
+}
+:root:not([data-theme='dark']) .app-header .profile-trigger {
+  background: var(--control-surface);
+  border-color: var(--control-border);
+  color: var(--control-text);
+}
+:root:not([data-theme='dark']) .app-header .profile-trigger:hover {
+  background: var(--control-hover);
+}
+:root:not([data-theme='dark']) {
+  --atmos-ui-muted: #475569;
+  --atmos-ui-muted-bright: #334155;
+}
+:root:not([data-theme='dark']) .app-shell :is(.time-scrubber-edge, .x-range-value,
+  .dropdown-label-prefix, .plot-title-copy, .plot-title strong, .slider-label,
+  .library-name small, .library-score small) {
+  color: #475569;
+  opacity: 1;
+}
+:root:not([data-theme='dark']) .app-shell input::placeholder {
+  color: #475569;
+  opacity: 1;
+}
+:root:not([data-theme='dark']) .app-shell .file-browser .file-row-annotation-status {
+  color: color-mix(in srgb, var(--atmos-icon-color, #ec4899) 50%, #0f172a);
+}
+:root:not([data-theme='dark']) .app-shell .file-candidate-star[aria-pressed='true'] {
+  color: var(--control-active);
+}
+:root {
+  --control-height: 34px;
+  --control-compact-height: 26px;
+  --control-radius: 999px;
+  --control-padding: 12px;
+  --control-gap: 6px;
+  --control-popover-gap: 4px;
+  --control-font-size: 12px;
+  --control-active: var(--atmos-ui-accent-strong);
+  --control-surface: var(--atmos-ui-surface);
+  --control-hover: var(--atmos-ui-surface-strong);
+  --control-border: #b7c5d8;
+  --control-text: #334155;
+  --control-focus: var(--atmos-ui-accent);
+}
+:root[data-theme='dark'] {
+  --control-active: var(--atmos-ui-accent-strong);
+  --control-surface: var(--atmos-ui-surface-strong);
+  --control-hover: var(--atmos-ui-button-bg-hover);
+  --control-border: var(--atmos-ui-border-strong);
+  --control-text: var(--atmos-ui-text);
+  --control-focus: var(--atmos-ui-accent);
+}
+
+:root .login-shell .ghost-button,
+:root .atmos-controls :is(.seg, .ghost-button, .primary-button, .icon-button, .dropdown-trigger),
+:root .chromatogram-export-dialog :is(.ghost-button, .primary-button, .icon-button, .dropdown-trigger),
+:root .app-settings-dialog :is(.ghost-button, .primary-button, .dropdown-trigger),
+.app-shell :is(.seg, .ghost-button, .primary-button, .icon-button, .dropdown-trigger,
+  .spectrum-toggle, .bookmark-camera-button, .quick-filter-chip,
+  .file-set-chip, .export-menu-trigger, .data-outbound-collapse-btn,
+  .library-collapse, .file-browser-collapse-btn, .header-chat-button,
+  .layout-tool-btn, .layout-rp-btn, .layout-rp-toggle-btn, .layout-format-btn, .layout-rp-export-btn),
+.app-shell .batch-settings>fieldset>button,
+.app-shell :is(.table-heading, .inspector-actions, .candidate-actions,
+  .batch-toolbar, .batch-peak-tools, .batch-dialog-actions, .app-settings-actions,
+  .modal-actions, .batch-move-dialog footer) button {
+  box-sizing: border-box;
+  height: var(--control-height);
+  min-height: var(--control-height);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--control-gap);
+  padding: 0 var(--control-padding);
+  border: 1px solid var(--control-border);
+  border-radius: var(--control-radius);
+  background: var(--control-surface);
+  color: var(--control-text);
+  box-shadow: none;
+  font-size: var(--control-font-size);
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+:root .login-shell .ghost-button:hover:not(:disabled),
+:root .atmos-controls :is(.seg, .ghost-button, .icon-button, .dropdown-trigger):hover:not(:disabled),
+:root .chromatogram-export-dialog :is(.ghost-button, .icon-button, .dropdown-trigger):hover:not(:disabled),
+:root .app-settings-dialog :is(.ghost-button, .dropdown-trigger):hover:not(:disabled),
+.app-shell :is(.seg, .ghost-button, .icon-button, .dropdown-trigger,
+  .spectrum-toggle, .bookmark-camera-button, .quick-filter-chip,
+  .file-set-chip, .export-menu-trigger):hover:not(:disabled) {
+  background: var(--control-hover);
+  border-color: var(--control-focus);
+  color: var(--control-text);
+  box-shadow: none;
+}
+:root .atmos-controls .seg[aria-pressed='true'],
+:root .atmos-controls .seg[aria-pressed='true']:hover:not(:disabled),
+.app-shell :is(.seg, .quick-filter-chip, .file-set-chip, .spectrum-toggle).active {
+  background: var(--control-active);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: none;
+}
+:root .chromatogram-export-dialog .primary-button,
+:root .atmos-controls .primary-button,
+.app-shell .primary-button,
+.app-shell .layout-rp-export-btn { background: var(--control-active); color: #fff; }
+:root .app-shell .file-browser-expand,
+:root .app-shell .file-browser-expand:hover,
+:root[data-theme='dark'] .app-shell .file-browser-expand:hover:not(:disabled) {
+  background: var(--control-active);
+  color: #fff;
+}
+:root .app-shell .design-sync-actions .primary-button,
+:root .app-shell .design-sync-actions .primary-button:hover:not(:disabled) {
+  background: var(--control-active);
+  color: #fff;
+  border-color: transparent;
+}
+.app-shell .layout-tool-btn { width: 34px; padding: 0; }
+.app-shell :is(.layout-tool-btn.active, .layout-rp-toggle-btn.on, .layout-format-btn.active) {
+  background: var(--control-active); color: #fff; border-color: transparent; box-shadow: none;
+}
+.app-shell .theme-mode-switch { box-sizing: border-box; height: 34px; border-radius: 999px; padding: 3px; gap: 2px; border-width: 1px; }
+.app-shell .theme-mode-switch button { height: 26px; min-height: 26px; padding-block: 0; border-radius: 999px; letter-spacing: 0; text-transform: none; box-shadow: none; }
+.app-shell .theme-mode-switch button.active { background: var(--control-active); color: #fff; border-color: transparent; box-shadow: none; }
+:root .login-shell .ghost-button:focus-visible,
+:root .atmos-controls :is(button, input, select, textarea):focus-visible,
+:root .chromatogram-export-dialog :is(button, input):focus-visible,
+:root .app-settings-dialog :is(button, input, select, textarea):focus-visible,
+.app-shell :is(button, input, select, textarea):focus-visible {
+  outline: 2px solid var(--control-focus);
+  outline-offset: 2px;
+}
+:root .chromatogram-export-dialog .export-range-input,
+:root .atmos-controls :is(input:not([type]), input[type='text'], input[type='number']),
+:root .app-settings-dialog :is(input:not([type]), input[type='text'], input[type='search'], input[type='email']),
+.app-shell :is(input:not([type]), input[type='text'], input[type='search'],
+  input[type='number'], input[type='email'], input[type='password'], select) {
+  box-sizing: border-box;
+  height: var(--control-height);
+  min-height: var(--control-height);
+  padding: 0 var(--control-padding);
+  border: 1px solid var(--control-border);
+  border-radius: var(--control-radius);
+  background: var(--control-surface);
+  color: var(--control-text);
+  font-size: var(--control-font-size);
+  line-height: 1.2;
+  letter-spacing: 0;
+  min-width: 0;
+}
+.app-shell input::placeholder { color: var(--atmos-ui-muted); opacity: 1; }
+/* Portaled windows opt into the same controls without the app-shell layout. */
+:root .atmos-controls .icon-button { width: var(--control-height); flex: none; padding: 0; }
+:root .atmos-controls :is(button, input):disabled { opacity: 0.5; cursor: not-allowed; }
+:root .atmos-controls .dropdown.disabled { opacity: 1; }
+:root .atmos-controls input[type='checkbox'] { accent-color: var(--control-active); flex: none; }
+.app-shell select:not([multiple]):not([size]) {
+  appearance: none;
+  padding-right: 36px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right calc(var(--control-height) / 2 - 9px) center;
+  background-size: 16px;
+}
+:root[data-theme='dark'] .app-shell select:not([multiple]):not([size]) {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23e5e7eb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+:root .app-shell select:not([multiple]):not([size]),
+:root[data-theme='dark'] .app-shell select:not([multiple]):not([size]) {
+  background-repeat: no-repeat;
+  background-position: right calc(var(--control-height) / 2 - 9px) center;
+  background-size: 16px;
+}
+.app-shell .dropdown .dropdown-trigger { padding-right: calc(var(--control-height) / 2 - 8px); }
+.cap-option { display: inline-flex; align-items: center; gap: var(--control-gap); white-space: nowrap; }
+.dropdown .dropdown-trigger .cap-option svg { transform: none; color: inherit; }
+:root .app-shell .plot-overlay-object-row {
+  background: var(--control-surface);
+  border-color: var(--control-border);
+  color: var(--control-text);
+}
+:root .app-shell .plot-overlay-object-row:hover {
+  background: var(--control-hover);
+  border-color: var(--control-focus);
+}
+:root .app-shell .plot-overlay-object-row.active,
+:root .app-shell .plot-overlay-object-row.active:hover {
+  background: var(--control-active);
+  border-color: var(--control-active);
+  color: #fff;
+}
+:root .app-shell .plot-overlay-object-row :is(span, strong, em) {
+  color: inherit;
+  opacity: 1;
+  letter-spacing: 0;
+}
+:root .app-shell .plot-overlay-object-row em:hover { color: inherit; text-decoration: underline; }
+.app-shell .result-name.editable:hover {
+  background: var(--control-hover);
+  color: var(--control-text);
+  box-shadow: inset 0 0 0 1px var(--control-border);
+}
+.app-shell input.result-name-input {
+  background: var(--control-surface);
+  color: var(--control-text);
+  caret-color: var(--control-text);
+  border-color: var(--control-border);
+}
+.app-shell input.result-name-input:focus {
+  border-color: var(--control-focus);
+  box-shadow: 0 0 0 2px var(--atmos-ui-accent-soft);
+}
+.app-shell :is(.result-name.editable, .result-name-input)::selection {
+  background: var(--control-active);
+  color: #fff;
+}
+.app-shell textarea { border-radius: 8px; }
+:root .app-settings-dialog textarea {
+  border: 1px solid var(--control-border);
+  border-radius: 8px;
+  background: var(--control-surface);
+  color: var(--control-text);
+  padding: 8px var(--control-padding);
+  font: inherit;
+}
+.app-shell :is(.dropdown-trigger, .seg, .spectrum-toggle) svg { flex-shrink: 0; }
+.app-shell .dropdown-trigger { justify-content: space-between; }
+.app-shell .file-browser :is(.filter-dropdown .dropdown-trigger, .file-filters>input) {
+  height: var(--control-height); min-height: var(--control-height); padding: 0 12px;
+}
+.app-shell .quick-filter-chip:disabled {
+  background: var(--control-surface); color: var(--atmos-ui-muted); opacity: .6;
+}
+
+.app-shell .profile-trigger {
+  box-sizing: border-box;
+  height: var(--control-height);
+  min-height: var(--control-height);
+  padding: 3px 10px 3px 3px;
+  gap: 6px;
+  box-shadow: none;
+  border-width: 1px;
+  letter-spacing: 0;
+}
+.app-shell .profile-avatar { width: 26px; height: 26px; letter-spacing: 0; }
+.app-shell .header-control.mode-control { border: 0; min-height: 34px; }
+.app-shell :is(.header-chat-button, .icon-button, .bookmark-camera-button,
+  .file-browser-collapse-btn, .data-outbound-collapse-btn, .export-menu-trigger,
+  .library-collapse, .project-edit, .project-new) {
+  width: var(--control-height);
+  min-width: var(--control-height);
+  padding: 0;
+}
+.app-shell .workspace-topbar {
+  --workspace-control-height: var(--control-height);
+  min-height: 50px;
+  padding: 8px;
+  align-items: center;
+}
+.app-shell :is(.workspace-topbar, .workspace-topbar>.tool-strip, .workspace-figure-controls) { gap: var(--control-gap); }
+.app-shell .workspace-figure-controls { padding-inline: 0; }
+.app-shell .workspace-topbar.design-topbar { display: flex; flex-wrap: wrap; justify-content: center; }
+.app-shell .design-topbar .workspace-figure-controls { flex: 1 1 100%; width: 100%; max-width: none; justify-content: center; }
+.app-shell .workspace.annotation-active .plot-frame-with-y-scale { padding: 0; }
+.app-shell .workspace.annotation-active .plot-frame-column { padding: 16px 16px 16px 80px; align-items: center; justify-content: center; }
+.app-shell .workspace.annotation-active .plot-aspect-frame { flex-shrink: 0; align-self: center; }
+.app-shell .workspace.annotation-active .plot-overlay-toolbar[aria-label='Drawing tools'] {
+  left: -64px; top: 0; max-height: 100%; overflow-y: auto; box-sizing: border-box;
+}
+.app-shell .workspace.annotation-active .plot-overlay-toolbar[aria-label='Drawing tools'] > * { flex-shrink: 0; }
+/* The toolbar owns the gap above the canvas; do not add a second top gutter. */
+.app-shell .workspace { grid-template-columns: minmax(0, 1fr); padding: 0 8px 8px; gap: 8px; }
+.app-shell .workspace>.plot-panel { min-width: 0; }
+.app-shell .workspace.has-ms-pane > .ms-spectrum-row {
+  margin-inline: 0;
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.app-shell .workspace.has-ms-pane > .ms-spectrum-row > .plot-panel {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.app-shell .right-panel>.data-outbound-heading {
+  box-sizing: border-box; min-height: 50px; padding: 8px 8px 7px;
+  border-bottom-width: 1px;
+}
+.app-shell .data-outbound-heading>div:first-child>span { line-height: 14px; }
+.app-shell .data-outbound-heading>div:first-child>strong { line-height: 18px; margin-top: 0; }
+.app-shell .workspace-figure-controls.plot-title-actions :is(.bookmark-camera-button, .spectrum-toggle:not(:has(span))) {
+  width: var(--control-height);
+  min-width: var(--control-height);
+  padding: 0;
+}
+.app-shell .workspace-figure-controls.plot-title-actions :is(.view-toggle-group, .legend-mode-switch) {
+  box-sizing: border-box;
+  height: var(--control-height);
+  min-height: var(--control-height);
+  padding: 3px;
+  gap: 2px;
+  border: 1px solid var(--control-border);
+  background: var(--control-surface);
+  box-shadow: none;
+}
+.app-shell .workspace-figure-controls.plot-title-actions .view-toggle-group { grid-template-columns: repeat(2, 26px); }
+.app-shell .workspace-figure-controls.plot-title-actions .legend-mode-switch { grid-template-columns: repeat(3, 26px); }
+.app-shell .workspace-figure-controls.plot-title-actions :is(.view-toggle-group .spectrum-toggle, .legend-mode-switch button) {
+  width: 26px; min-width: 26px; height: 26px; min-height: 26px;
+  padding: 0; line-height: 26px; font-size: 12px;
+  color: var(--control-text); border: 0; box-shadow: none;
+}
+.app-shell .workspace-figure-controls.plot-title-actions .sliding-mode-pill::before,
+.app-shell .workspace-pbl::before { background: var(--control-active); box-shadow: none; }
+.app-shell .app-header .brand-copy { display: flex; flex-direction: row; align-items: center; gap: 10px; }
+.app-shell .app-header .brand-copy strong { font-size: 20px; letter-spacing: 0; }
+.app-shell .app-header .brand-copy .brand-environment { border-left: 1px solid var(--control-border); padding-left: 10px; font-size: 12px; font-weight: 700; }
+:root .app-shell .workspace .time-scrubber .time-scrubber-bookmark-marker {
+  transition: none;
+  width: 16px; height: 16px; border: 0; border-radius: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent; color: var(--atmos-rt-accent, var(--control-active)); top: -5px;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root .app-shell .workspace .time-scrubber .time-scrubber-bookmark-marker { transition: none; }
+}
+:root .app-shell .workspace .time-scrubber .time-scrubber-bookmark-marker svg { transform: rotate(180deg); }
+:root .app-shell .workspace .time-scrubber .time-scrubber-bookmark-marker:hover { filter: brightness(1.15); }
+.app-shell .design-objects-panel { background: var(--control-surface); color: var(--control-text); }
+.design-crop-host { flex: 0 0 auto; margin-top: auto; border-top: 1px solid var(--control-border); }
+.design-crop-controls { display: flex; flex-direction: column; gap: 8px; padding: 12px; }
+.design-crop-controls .x-range-control { display: flex; width: 100%; min-width: 0; }
+.design-crop-controls .x-range-slider { flex: 1; min-width: 40px; }
+.app-shell .design-objects-outliner-host { flex: 1 1 auto; height: auto; min-height: 0; }
+.app-shell .plot-overlay-objects-outliner { background: var(--control-surface); color: var(--control-text); }
+.app-shell .plot-overlay-objects-outliner-head { background: var(--control-surface); border-color: var(--control-border); }
+.app-shell .plot-overlay-objects-outliner-head strong,
+.app-shell .plot-overlay-objects-outliner-head span { color: var(--control-text); }
+.app-shell .workspace-pbl { background: var(--control-surface); box-shadow: none; }
+.app-shell .workspace-pbl button,
+.app-shell .workspace-pbl button:hover:not(:disabled) {
+  background: transparent; color: var(--control-text); box-shadow: none;
+}
+.app-shell .workspace-pbl button[aria-selected='true'],
+.app-shell .workspace-pbl button[aria-selected='true']:hover:not(:disabled),
+.app-shell .workspace-figure-controls.plot-title-actions .sliding-mode-pill button.active,
+.app-shell .workspace-figure-controls.plot-title-actions .sliding-mode-pill button.active:hover:not(:disabled) { color: #fff; }
+.app-shell .workspace-pbl button:focus-visible { outline: none; box-shadow: none; }
+.app-shell .workspace-figure-controls.plot-title-actions .sliding-mode-pill button.active,
+.app-shell .workspace-figure-controls.plot-title-actions .sliding-mode-pill button.active:hover:not(:disabled) {
+  background: transparent; box-shadow: none;
+}
+
+/* Compact, repeated actions share the shape but not the toolbar footprint. */
+.app-shell :is(.file-table-head, .file-sets-head, .batch-cell-actions,
+  .batch-row-actions, .batch-peak-zoom) button,
+.app-shell :is(.result-icon-button, .batch-reference-file button) {
+  box-sizing: border-box; min-height: var(--control-compact-height);
+  height: var(--control-compact-height); border-radius: var(--control-radius);
+  padding: 0 7px; font-size: 11px; line-height: 1.2; letter-spacing: 0;
+  border: 1px solid var(--control-border); background: var(--control-surface);
+  color: var(--control-text); box-shadow: none;
+}
+.app-shell :is(.batch-bottom-heading, .batch-qc>header) button {
+  width: 26px; height: 26px; min-height: 26px; padding: 0;
+  border-radius: 999px; box-shadow: none;
+}
+.app-shell :is(.batch-cell-actions, .batch-row-actions) button:has(svg):not(:has(span)),
+.app-shell .result-icon-button { min-width: 26px; }
+.app-shell .result-row-actions { align-items: center; }
+.app-shell .right-panel .result-table.uvvis-results {
+  --result-table-columns: 18px 30px minmax(0, 1fr) 74px 50px 28px;
+}
+.app-shell .workspace-figure-controls .optical-fill-dropdown {
+  width: max-content;
+  min-width: max-content;
+  flex: 0 0 auto;
+}
+.app-shell .workspace-figure-controls .optical-fill-dropdown .dropdown-trigger {
+  width: max-content;
+  min-width: max-content;
+}
+.app-shell .result-icon-button {
+  width: var(--control-compact-height);
+  min-width: var(--control-compact-height);
+  flex: 0 0 var(--control-compact-height);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+}
+.app-shell .result-icon-button svg { display: block; flex: none; }
+.artifact-symbol-preview :is(path, line, circle, polyline, rect, ellipse) {
+  vector-effect: non-scaling-stroke;
+  stroke-width: 1.25px;
+}
+
+/* The visible nodes are SVG dots underneath these generous hit targets. */
+:root .app-shell button.layout-curve-handle,
+:root .app-shell button.layout-curve-handle:hover:not(:disabled),
+:root .app-shell button.layout-curve-handle:active {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+:root .app-shell button.layout-curve-handle:focus-visible {
+  outline: 1px solid var(--control-focus);
+  outline-offset: -4px;
+}
+.app-shell .file-table-head { flex-wrap: wrap; gap: 4px; }
+.app-shell .table-heading { box-sizing: border-box; min-height: 53px; height: 53px; padding: 4px 6px; align-items: center; border-width: 1px; }
+.app-shell .table-heading>.table-heading-actions { height: 44px; align-items: center; overflow-y: hidden; scrollbar-width: none; }
+.app-shell .table-heading>.table-heading-actions::-webkit-scrollbar { display: none; }
+.app-shell .table-heading .drawer-title { height: 44px; align-items: center; }
+.app-shell .peak-table.collapsed { height: 54px; }
+.app-shell .center-stack { padding-bottom: 0; }
+.app-shell .batch-workspace .batch-row-name>button:not(.batch-compare-compound) { border-radius: 999px; }
+.app-shell .plot-overlay-toolbar button {
+  width: 34px; height: 34px; border-radius: 999px; box-shadow: none;
+}
+:root .app-shell .workspace .plot-presentation-overlay .plot-overlay-toolbar[aria-label='Analysis tools'] {
+  background: transparent; border: 0; box-shadow: none;
+}
+:root .app-shell .plot-presentation-overlay .plot-overlay-toolbar[aria-label='Analysis tools'] > button {
+  background: var(--control-surface); color: var(--control-text); border: 1px solid var(--control-border);
+}
+:root .app-shell .plot-presentation-overlay .plot-overlay-toolbar[aria-label='Analysis tools'] > button.active {
+  background: var(--control-active); color: #fff;
+}
+:root .app-shell .plot-presentation-overlay .plot-overlay-toolbar[aria-label='Analysis tools'] > button:hover { border-color: var(--control-text); }
+.app-shell .ms-spectrum-row .plot-title-heading { flex: 1; min-width: 0; }
+.app-shell .ms-spectrum-row .plot-title-actions { min-width: 0; max-width: 40%; }
+.app-shell .spectrum-compound-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; color: var(--control-text); }
+.app-shell .time-scrubber-bookmark { border-radius: 999px; box-shadow: none; }
+:root .app-settings-dialog .pill,
+.app-shell .pill {
+  display: inline-flex; align-items: center; justify-content: center;
+  box-sizing: border-box; min-width: 20px; height: 20px; padding: 0 6px;
+  border-radius: 999px; font-size: 11px; line-height: 1; letter-spacing: 0;
+  vertical-align: middle;
+}
+.app-shell .batch-panel-switch { box-sizing: border-box; height: 34px; padding: 3px; background: var(--control-surface); border: 1px solid var(--control-border); }
+.app-shell .batch-panel-switch span { height: 26px; color: var(--control-text); }
+.app-shell .batch-panel-switch input:checked+span { background: var(--control-active); color: #fff; }
+.app-shell .batch-panel-switch input:focus-visible+span { outline-color: var(--control-focus); }
+
+:root[data-theme='dark'] .app-shell :is(.section-row-title .pill, .drawer-title .pill) {
+  background: var(--control-hover); color: var(--control-text);
+}
+:root .app-settings-dialog .pill { background: var(--control-hover); color: var(--control-text); }
+:root[data-theme='dark'] .app-shell :is(.result-empty, .library-empty, .file-help, .file-sets-empty) { color: var(--atmos-ui-muted); }
+:root[data-theme='dark'] .app-shell :is(.field-label, .file-browser-project-label) { color: var(--atmos-ui-muted); }
+:root[data-theme='dark'] .app-shell .file-group-head {
+  background: var(--atmos-ui-surface-strong); color: var(--atmos-ui-text); box-shadow: none;
+}
+
+/* Batch is an analysis surface, not a separate light-only theme. */
+:root[data-theme='dark'] .batch-workspace,
+:root[data-theme='dark'] :is(.batch-settings, .batch-comparison-pane, .batch-move-dialog,
+  .batch-lookup-dialog, .batch-row-menu, .batch-hit) {
+  background: var(--atmos-ui-surface); color: var(--atmos-ui-text);
+  border-color: var(--atmos-ui-border);
+}
+:root[data-theme='dark'] .batch-table :is(th, td) { border-color: var(--atmos-ui-border); }
+:root[data-theme='dark'] .batch-table :is(.batch-compound, .batch-mean-rt, .batch-mean-height, .batch-overlay-cell) { background: var(--atmos-ui-surface); }
+:root[data-theme='dark'] .batch-table thead th { background: var(--atmos-ui-surface-strong); color: #d3d6db; }
+:root[data-theme='dark'] .batch-workspace :is(small, .batch-muted, .batch-cell-rt, .batch-bottom-units, .batch-empty) { color: var(--atmos-ui-muted); }
+:root[data-theme='dark'] .batch-table tbody tr:is(:hover, :focus-within, .batch-row-active)>:is(td, th) { background: var(--atmos-ui-surface-strong); }
+:root[data-theme='dark'] .batch-table tbody tr.batch-row-selected>:is(td, th) { background: #3d4055; }
+.app-shell .batch-table tbody tr>td.batch-file-column-active:not(.batch-cell-selected) {
+  background: color-mix(in srgb, #00bfff 10%, var(--atmos-ui-surface));
+  box-shadow: inset 1px 0 #00bfff26, inset -1px 0 #00bfff26;
+}
+.app-shell .batch-table thead th.batch-file-column-active {
+  background: color-mix(in srgb, #00bfff 10%, var(--atmos-ui-surface-strong));
+  box-shadow: inset 1px 0 #00bfff26, inset -1px 0 #00bfff26;
+}
+:root[data-theme='dark'] .batch-table tbody tr>td.batch-cell-selected { background: color-mix(in srgb, var(--batch-selection-color) 18%, var(--atmos-ui-surface)); }
+:root[data-theme='dark'] .batch-table tbody tr>td.batch-cell-selected.batch-cell-active { background: color-mix(in srgb, var(--batch-selection-color) 26%, var(--atmos-ui-surface)); }
+:root[data-theme='dark'] .batch-table td>button[data-peak-cell] { background: transparent; color: var(--atmos-ui-text); box-shadow: none; }
+/* Non-clickable result cells still contain data, not disabled action labels. */
+:root[data-theme='dark'] .batch-table td>button[data-peak-cell]:disabled { opacity: 1; }
+:root[data-theme='dark'] .batch-table td>button.batch-reviewed { color: #6ee7b7; }
+:root[data-theme='dark'] .batch-workspace .batch-row-name button.batch-compare-compound {
+  color: var(--atmos-ui-text); background: transparent; box-shadow: none;
+}
+:root[data-theme='dark'] .batch-workspace .batch-row-name>button:not(.batch-compare-compound) { border-radius: 999px; }
+:root[data-theme='dark'] .batch-workspace :is(.batch-mini, .batch-ms-plot) :is(polyline, path[stroke]) { filter: brightness(1.5); }
+:root[data-theme='dark'] .batch-workspace .batch-grouping-warning { color: #fbbf69; }
+:root[data-theme='dark'] .batch-workspace .batch-rejected { color: #fca5a5; }
+:root[data-theme='dark'] .batch-workspace :is(svg text, .batch-mini text) { fill: var(--atmos-ui-muted); }
+:root[data-theme='dark'] .batch-workspace :is(.batch-chromatogram-status, .batch-assignment-candidates .batch-move-sample:has(input:checked)) { background: var(--atmos-ui-surface-strong); }
+:root[data-theme='dark'] .batch-workspace .batch-lookup-menu [role=menuitem] { color: var(--atmos-ui-text); }
+:root[data-theme='dark'] .batch-workspace :is(.batch-integration-chart, .batch-nist-candidates li) {
+  background: var(--atmos-ui-surface-soft); color: var(--atmos-ui-text); border-color: var(--atmos-ui-border);
+}
+:root[data-theme='dark'] .batch-workspace :is(.batch-peak-file, .batch-area-values dt) { color: var(--atmos-ui-muted); }
+:root[data-theme='dark'] .batch-workspace :is(.batch-area-values, .batch-nist-candidates) { border-color: var(--atmos-ui-border); }
+:root[data-theme='dark'] .batch-calibration-preview th { background: var(--atmos-ui-surface-strong); }
+
+/* Classic Dark: neutral working surfaces (~60%), darker structure (~30%),
+   and restrained active-state accents (~10%). Data colors remain independent. */
+:root .app-shell :is(.app-header, .status-bar) { background: var(--atmos-ui-bg); }
+:root .app-shell :is(.file-browser, .file-browser .panel-heading,
+  .file-table-section, .file-table-body, .file-sets, .file-sets-head,
+  .file-sets-create, .file-sets-selection-bar, .right-panel, .inspector-scroll,
+  .workspace-topbar, .tool-strip, .plot-overlay-toolbar) { background: var(--atmos-ui-surface); }
+:root .app-shell .workspace { background: var(--atmos-ui-surface-soft); }
+:root[data-theme='dark'] .app-shell :is(.profile-avatar, .file-group-count) {
+  background: var(--atmos-ui-bg); color: var(--atmos-ui-text);
+}
+:root[data-theme='dark'] .app-shell :is(.file-table-row:hover, .trace-label-row:hover,
+  .result-table-row.clickable:hover, .dropdown-option:hover, .profile-menu-item:hover) {
+  background: var(--atmos-ui-surface-strong);
+}
+:root[data-theme='dark'] .app-shell :is(.project-manager-row, .project-manager-row.editing,
+  .project-manager-instrument, .project-share-row, .project-share-help,
+  .storage-usage-meter, .project-manager-collapsed-summary) {
+  background: var(--atmos-ui-surface-soft); border-color: var(--atmos-ui-border);
+}
+:root[data-theme='dark'] .app-shell .project-manager-row.loaded {
+  border-color: var(--atmos-ui-accent); box-shadow: inset 3px 0 var(--atmos-ui-accent);
+}
+:root[data-theme='dark'] .app-shell :is(.app-settings-section-blurb code,
+  .app-settings-field-hint code, .app-settings-toggle-note code) {
+  background: var(--atmos-ui-surface); border-color: var(--atmos-ui-border); color: var(--atmos-ui-text);
+}
+:root[data-theme='dark'] .app-shell .app-settings-body .app-settings-toggle:hover:not(.disabled) {
+  background: var(--control-hover); border-color: var(--control-border);
+}
+:root[data-theme='dark'] .app-shell :is(.y-range-handle, .x-range-handle):is(:hover, :focus-visible) {
+  box-shadow: 0 0 0 2px var(--atmos-ui-surface), 0 0 0 5px var(--atmos-ui-accent-soft);
+}
+:root[data-theme='dark'] .app-shell .file-sets-head strong { color: var(--atmos-ui-muted); }
+:root[data-theme='dark'] .app-shell .file-row-batch-color { box-shadow: 0 0 0 1px #7b7e85; }
+:root .app-shell .workspace .time-scrubber input[type='range'] {
+  accent-color: var(--atmos-ui-accent); background: var(--atmos-ui-accent);
+}
+:root .app-shell .workspace .time-scrubber input[type='range']::-webkit-slider-thumb { background: var(--atmos-ui-accent); }
+:root .app-shell .workspace .time-scrubber input[type='range']::-moz-range-thumb { background: var(--atmos-ui-accent); }
+
+/* Chart regions follow the same user palette in either theme. */
+:root .app-shell .workspace .time-scrubber {
+  background: var(--atmos-ui-surface);
+  border-color: var(--atmos-ui-border);
+  color: var(--atmos-ui-text);
+}
+:root .app-shell .workspace .plot-title {
+  background: color-mix(in srgb, var(--atmos-ui-surface-strong) 82%, transparent);
+  border-color: var(--atmos-ui-border);
+  color: var(--atmos-ui-text);
+}
+
+.app-shell .file-browser-project-picker :is(.dropdown-label, .dropdown-option-label) {
+  color: var(--atmos-ui-text); letter-spacing: 0; text-transform: none;
+}
+.app-shell .file-sets { display: flex; flex-direction: column; gap: 6px; }
+.app-shell .file-sets-head { margin: 0; min-height: 26px; }
+.app-shell .file-sets-list { gap: 6px; align-items: center; }
+.app-shell .file-sets-empty { display: block; margin: 0; font-style: normal; line-height: 1.4; }
+.app-shell .file-sets-head strong { letter-spacing: 0; }
+
+/* Inspector headings share the Library Search band and centerline. */
+:root .app-shell .right-panel .inspector-section-heading {
+  min-height: 43px;
+  height: auto;
+  box-sizing: border-box;
+  padding: 4px 12px;
+  margin: 0;
+  align-items: center;
+  flex: 0 0 auto;
+  background: color-mix(in srgb, var(--atmos-ui-surface-strong) 82%, transparent);
+  border-bottom: 1px solid var(--atmos-ui-border);
+  color: var(--atmos-ui-text);
+}
+:root .app-shell .right-panel .inspector-section-heading .section-row-title {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 8px;
+  line-height: 1.4;
+  text-transform: none;
+  letter-spacing: 0;
+  color: inherit;
+}
+:root .app-shell .right-panel .inspector-section-heading strong { margin: 0; font-size: 14px; line-height: 1.4; text-transform: none; letter-spacing: 0; }
+:root .atmos-tip-readable { box-sizing: border-box; max-width: min(560px, calc(100vw - 16px)); font-size: 14px; letter-spacing: 0; }
+:root .atmos-tip-readable .atmos-tip-line { font-size: inherit; overflow-wrap: anywhere; }
+.axis-division-offset-row { grid-template-columns: 44px minmax(0, 1fr) 50px; }
+
+.app-shell .workspace .plot-title .plot-title-chevron-button,
+.app-shell .workspace .plot-title .plot-title-chevron-button span:not(.atmos-chevron) {
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--control-text);
+}
+.app-shell .workspace .plot-title .plot-title-chevron-button {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+:root .app-shell .workspace .plot-title .plot-title-chevron-button > svg { color: inherit; }
+:root .app-shell .workspace .plot-title button.plot-title-chevron-button:focus-visible {
+  outline: 2px solid var(--control-focus); outline-offset: -2px;
+}
+:root[data-theme='dark'] .app-shell .workspace .plot-title .plot-title-chevron-button,
+:root[data-theme='dark'] .app-shell .workspace .plot-title .plot-title-chevron-button span:not(.atmos-chevron) {
+  color: #ffffff;
+}
+.app-shell .profile-menu-head strong { color: var(--control-text); }
+:root .app-shell .left-workspace-mode-tabs {
+  background: var(--atmos-ui-surface);
+  border-color: var(--control-border);
+}
+:root .app-shell :is(.left-workspace-panel, .design-objects-panel, .plot-overlay-objects-outliner) {
+  background: var(--atmos-ui-surface);
+  color: var(--control-text);
+  border-color: var(--control-border);
+}
+.app-shell .workspace-figure-controls > .axis-division-wrap { order: -1; }
+:root .app-shell .left-workspace-mode-tabs { box-sizing: border-box; height: var(--workspace-toolbar-height, 50px); min-height: var(--workspace-toolbar-height, 50px); align-items: center; }
+.left-workspace-mode-tabs > .atmos-sliding-pill { width: 100%; }
+:root .app-shell .plot-overlay-objects-outliner-head {
+  box-sizing: border-box; height: 50px; min-height: 50px; padding: 0 12px; align-items: center;
+}
+:root .app-shell .plot-overlay-objects-outliner-head strong { font-size: 16px; }
+.plot-overlay-rail-popup {
+  position: fixed; z-index: 10000; box-sizing: border-box;
+  width: min(256px, calc(100vw - 16px)); max-height: calc(100vh - 16px);
+  background: var(--control-surface); color: var(--control-text);
+  border-color: var(--control-border); border-radius: 8px;
+}
+.plot-overlay-rail-popup .plot-overlay-flyout-title { color: var(--control-text); letter-spacing: 0; }
+.plot-overlay-rail-popup button {
+  background: var(--control-surface); color: var(--control-text);
+  border: 1px solid var(--control-border); border-radius: var(--control-radius);
+  min-height: var(--control-height); cursor: pointer;
+}
+.plot-overlay-rail-popup button:hover { background: var(--control-hover); }
+.plot-overlay-rail-popup button:focus-visible { outline: 2px solid var(--control-focus); outline-offset: 2px; }
+.plot-overlay-rail-popup .plot-overlay-symbol-btn { width: 44px; height: 44px; padding: 4px; }
+.app-shell .table-heading > .table-heading-actions {
+  justify-content: safe center;
+}
+.app-shell .profile-menu-head span { color: var(--atmos-ui-muted); }
+
+/* Batch shares Plot's saved panel widths and drag handlers. */
+@media (min-width: 1181px) {
+  .app-shell .main-layout.batch-mode { --effective-left-panel-w: min(var(--left-panel-w, 330px), 40vw); }
+  .app-shell .batch-mode>.left-panel-resizer { display: block; left: var(--effective-left-panel-w); }
+}
+.app-shell .batch-body { position: relative; }
+.app-shell .batch-settings.batch-panel { width: var(--right-panel-w, 360px); max-width: calc(100% - 180px); }
+.app-shell .batch-panel-resizer { right: min(var(--right-panel-w, 360px), calc(100% - 180px)); touch-action: none; }
+.app-shell .batch-table-scroll::-webkit-scrollbar { width: 12px; height: 12px; }
+.app-shell .batch-table-scroll::-webkit-scrollbar-track { background: var(--atmos-ui-surface); }
+.app-shell .batch-table-scroll::-webkit-scrollbar-track:horizontal { margin-left: var(--batch-frozen-width, 0px); }
+.app-shell .batch-table-scroll::-webkit-scrollbar-thumb { background: var(--atmos-ui-muted); border: 3px solid var(--atmos-ui-surface); border-radius: 8px; }
+.app-shell .batch-table-scroll::-webkit-scrollbar-button { display: none; }
+.app-shell .batch-table-scroll::-webkit-scrollbar-corner { background: var(--atmos-ui-surface); }
+
+.app-shell .batch-grid-zoom { display: flex; align-items: center; gap: 2px; margin-left: auto; flex-shrink: 0; }
+.app-shell .batch-grid-zoom button { width: 34px; padding: 0; }
+.app-shell .batch-grid-zoom .batch-grid-zoom-value { width: 50px; font-variant-numeric: tabular-nums; }
+.app-shell .batch-grid-zoom + .batch-compound-filter { margin-left: 0; }
+.app-shell .batch-compound-filter + .batch-compound-filter { margin-left: 0; flex-basis: 145px; width: 145px; }
+.app-shell .batch-compound-filter input[aria-invalid='true'] { border-color: #ef4444; }
+.app-shell .batch-toolbar .batch-compound-filter input { padding-right: 34px; }
+.app-shell .batch-toolbar .batch-compound-filter button { width: 26px; height: 26px; min-height: 26px; padding: 0; border: 0; background: transparent; }
+.app-shell .batch-toolbar .batch-compound-filter button svg { width: 14px; height: 14px; flex-shrink: 0; }
+.app-shell .batch-toolbar .batch-compound-filter button:hover { background: var(--control-hover); }
+.app-shell .batch-table { width: max(calc(100% / var(--batch-grid-scale, 1)), calc(var(--batch-summary-width) + var(--batch-file-count, 1) * 145px)); }
+.app-shell .batch-table tbody :is(.batch-compound, .batch-mean-rt, .batch-mean-height, .batch-overlay-cell) { cursor: pointer; }
+.app-shell .batch-table-scroll[data-summary-collapsed='true'] tbody :is(.batch-mean-rt, .batch-mean-height, .batch-overlay-cell) { position: static; }
+.app-shell .batch-table-scroll[data-summary-collapsed='true'] thead :is(.batch-mean-rt, .batch-mean-height, .batch-overlay-cell) { left: auto; z-index: 3; }
+
+.app-shell .batch-processing { display: grid; gap: 12px; container-type: inline-size; }
+.app-shell .batch-processing legend { margin-bottom: 8px; }
+.app-shell .batch-processing-field { display: grid; grid-template-columns: minmax(150px, 1fr) minmax(100px, 1fr); gap: 12px; align-items: center; }
+.app-shell .batch-processing-label { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.app-shell .batch-processing-label label { margin: 0; line-height: 1.4; }
+.app-shell .batch-processing-field > :is(input, select) { width: 100%; box-sizing: border-box; }
+.app-shell .batch-processing-field input { font-variant-numeric: tabular-nums; }
+.app-shell .batch-setting-help { width: 22px; height: 22px; flex-shrink: 0; border: 0; padding: 3px; background: transparent; color: var(--atmos-ui-muted); }
+.app-shell .batch-processing-range { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.app-shell .batch-processing-range input[type='range'] { width: 100%; min-width: 35px; accent-color: var(--atmos-ui-accent-strong); }
+.app-shell .batch-processing-range output { width: 4ch; flex-shrink: 0; font-size: 12px; font-variant-numeric: tabular-nums; text-align: right; }
+.app-shell .batch-processing-fixed { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; border-top: 1px solid var(--atmos-ui-border); padding-top: 10px; font-size: 11px; color: var(--atmos-ui-muted); }
+@container (max-width: 290px) { .app-shell .batch-processing-field { grid-template-columns: 1fr; gap: 5px; } }
+
+/* Keep library confidence in the score and edge, not a bright result card. */
+:root[data-theme='dark'] .library-row { background: var(--atmos-ui-surface); border-color: var(--atmos-ui-border); }
+:root[data-theme='dark'] .library-row:hover { background: var(--atmos-ui-surface-strong); }
+:root[data-theme='dark'] .library-row:is(.assigned, .previewed) { background: color-mix(in srgb, var(--atmos-ui-accent) 10%, var(--atmos-ui-surface)); background-image: none; outline-color: var(--atmos-ui-accent); }
+:root[data-theme='dark'] :is(.library-name, .library-name strong) { color: var(--atmos-ui-text); }
+:root[data-theme='dark'] :is(.library-name small, .library-score small) { color: var(--atmos-ui-muted); }
+:root[data-theme='dark'] .library-row.tone-strong .library-score strong { color: #6ee7b7; }
+:root[data-theme='dark'] .library-row.tone-good .library-score strong { color: #bef264; }
+:root[data-theme='dark'] .library-row.tone-fair .library-score strong { color: #fcd34d; }
+:root[data-theme='dark'] .library-row.tone-tentative .library-score strong { color: #fdba74; }
+:root[data-theme='dark'] .library-row.tone-weak .library-score strong { color: #fca5a5; }
+:root[data-theme='dark'] .library-engine-mark { background: var(--atmos-ui-surface-strong); color: var(--atmos-ui-text); border-color: var(--atmos-ui-border-strong); }
+:root[data-theme='dark'] .library-engine-mark.engine-m { color: #93c5fd; }
+:root[data-theme='dark'] .library-engine-mark.engine-r { color: #fcd34d; }
+:root[data-theme='dark'] .library-engine-mark.engine-a { color: #86efac; }
+
+.app-shell :is(.module-vis-wrap .export-menu-trigger, .result-table-tools .result-icon-button) { display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+.app-shell :is(.module-vis-wrap .export-menu-trigger, .result-table-tools .result-icon-button) svg { width: 18px; height: 18px; display: block; flex-shrink: 0; }
+
+.app-shell .batch-assignment-editor { border-top: 1px solid var(--atmos-ui-border); margin-top: 16px; padding-top: 14px; font-size: 14px; }
+.app-shell .batch-assignment-editor header { align-items: center; gap: 8px; }
+.app-shell .batch-assignment-editor h3 { margin: 0; font-size: 16px; }
+.app-shell .batch-assignment-editor .batch-move-field { align-items: stretch; font-size: 13px; }
+.app-shell .batch-assignment-editor .batch-move-field input { font-size: 14px; }
+.app-shell .batch-assignment-editor .batch-assignment-controls { align-items: stretch; flex-direction: column; gap: 4px; }
+.app-shell .batch-assignment-editor .batch-candidate-sort { justify-content: space-between; }
+.app-shell .batch-assignment-editor .batch-assignment-candidates { max-height: none; }
+.app-shell .batch-assignment-editor .batch-move-sample { font-size: 14px; line-height: 1.45; align-items: flex-start; }
+.app-shell .batch-assignment-editor .batch-move-sample small { font-size: 12px; line-height: 1.4; overflow-wrap: anywhere; }
+.app-shell .batch-assignment-editor .batch-move-sample input { margin-top: 4px; accent-color: var(--atmos-ui-accent-strong); }
+.app-shell .batch-assignment-editor footer { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; padding: 12px 0; position: sticky; bottom: -12px; background: var(--atmos-ui-surface); }
+.app-shell .batch-assignment-editor :is(header, footer) button { height: 34px; border-radius: 999px; padding: 0 12px; }
+.app-shell .batch-assignment-editor header button { width: 34px; padding: 0; flex-shrink: 0; }
+
+/* Locate feedback is transient; selected peak cells keep their own review state. */
+.app-shell .batch-file-locate,
+.app-shell .batch-table thead th.batch-file-column-active,
+.app-shell .batch-table tbody tr>td.batch-file-column-active:not(.batch-cell-selected) {
+  animation: var(--batch-locate-animation, batch-locate-fade-a) 5s linear forwards;
+}
+@keyframes batch-locate-fade-a {
+  from { background-color: color-mix(in srgb, #00bfff 10%, var(--batch-locate-surface, var(--atmos-ui-surface))); box-shadow: inset 0 0 0 1px #00bfff80; }
+  to { background-color: var(--batch-locate-surface, var(--atmos-ui-surface)); box-shadow: inset 0 0 0 1px transparent; }
+}
+@keyframes batch-locate-fade-b {
+  from { background-color: color-mix(in srgb, #00bfff 10%, var(--batch-locate-surface, var(--atmos-ui-surface))); box-shadow: inset 0 0 0 1px #00bfff80; }
+  to { background-color: var(--batch-locate-surface, var(--atmos-ui-surface)); box-shadow: inset 0 0 0 1px transparent; }
+}
+.app-shell .batch-table thead th { --batch-locate-surface: var(--atmos-ui-surface-strong); }
+.app-shell .batch-table tbody tr:is(:hover, :focus-within, .batch-row-active) { --batch-locate-surface: var(--atmos-ui-surface-strong); }
+@media (prefers-reduced-motion: reduce) {
+  .app-shell .batch-file-locate,
+  .app-shell .batch-table .batch-file-column-active { animation-timing-function: steps(1, end); }
+}
+
+.app-shell .batch-table .batch-row-collapsed > :is(th, td) { padding-block: 6px; }
+.app-shell .batch-row-collapsed :is(.batch-compound>small, .batch-row-actions, .batch-mini, .batch-cell-actions, td small) { display: none; }
+.app-shell .batch-row-collapsed .batch-row-name { align-items: center; }
+.app-shell .batch-row-collapsed .batch-compare-compound { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.app-shell .batch-row-collapsed .batch-overlay-cell > .batch-muted { display: none; }
+
+/* Workspace palette hierarchy: the selected base owns every working surface.
+   Only titles and table headings step up to the derived accent surface. */
+:root .app-shell .workspace { background: var(--atmos-ui-surface); }
+:root .app-shell .workspace :is(.plot-panel, .plot-body, .ms-spectrum-row) {
+  background: var(--plot-paper-surface, var(--atmos-ui-surface));
+}
+:root .app-shell :is(.library-panel-body, .library-subtabs, .library-deep-panel,
+  .result-table, .peak-table, .peak-table table, .peak-table td, .library-row) {
+  background: var(--atmos-ui-surface);
+}
+:root .app-shell :is(.file-table-head, .result-table-head, .peak-table .table-heading,
+  .right-panel .inspector-section-heading, .plot-overlay-objects-outliner-head) {
+  background: var(--atmos-ui-surface-strong);
+}
+:root .app-shell :is(.library-panel-body, .library-subtabs, .library-deep-panel,
+  .result-table, .peak-table, .peak-table table, .peak-table th, .peak-table td,
+  .library-row, .file-table-head, .result-table-head, .peak-table .table-heading,
+  .plot-overlay-objects-outliner-head) {
+  border-color: var(--atmos-ui-border);
+}
+
+/* Footer status shares the same theme contract as the workspace. The original
+   white-on-charcoal treatment made light-mode telemetry unreadable. */
+:root .app-shell .status-bar {
+  background: var(--atmos-ui-bg);
+  border-color: var(--atmos-ui-border);
+  color: var(--atmos-ui-text);
+}
+:root .app-shell :is(.status-right, .status-live-cursor, .status-atdb-current) {
+  color: var(--atmos-ui-muted);
+}
+:root .app-shell :is(.status-atdb-label, .status-atdb-count) {
+  color: var(--atmos-ui-text);
+}
+:root .app-shell .status-chip {
+  background: var(--atmos-ui-surface-strong);
+  border-color: var(--atmos-ui-border-strong);
+  color: var(--atmos-ui-text);
+}
+:root .app-shell .status-chip-button:hover {
+  background: var(--control-hover);
+  border-color: var(--atmos-ui-border-strong);
+  color: var(--atmos-ui-text);
+}
+:root[data-theme='light'] .app-shell .status-bar,
+:root[data-theme='light'] .app-shell :is(.status-right, .status-live-cursor,
+  .status-atdb-label, .status-atdb-count, .status-atdb-current, .status-chip,
+  .status-chip-button:hover, .status-chip-button.active) {
+  color: #000000;
+}
+:root[data-theme] .app-shell .status-chip-button.active {
+  background: var(--atmos-ui-accent-strong);
+  border-color: var(--atmos-ui-accent-strong);
+  color: #ffffff;
+}
+:root .app-shell .status-chip-button:focus-visible {
+  outline: 2px solid var(--control-focus);
+  outline-offset: 2px;
+}
+/* The primary chart and dock form two continuous, aligned header bands. */
+:root .app-shell { --workspace-heading-height: 50px; }
+:root .app-shell .workspace > .plot-panel > .plot-title,
+:root .app-shell .right-panel .inspector-tab-panel .inspector-section-heading {
+  box-sizing: border-box;
+  height: var(--workspace-heading-height);
+  min-height: var(--workspace-heading-height);
+  flex: 0 0 auto;
+  background: var(--atmos-ui-surface-strong);
+  border-bottom: 1px solid var(--atmos-ui-border);
+}
+
+.header-theme-shortcut { position: relative; display: flex; flex-shrink: 0; }
+.header-theme-error { position: absolute; top: calc(100% + var(--control-popover-gap)); right: 0; width: 220px; padding: 8px; background: var(--control-surface); color: var(--control-text); border: 1px solid var(--control-border); border-radius: 6px; z-index: 100; }

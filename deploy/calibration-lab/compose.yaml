@@ -1,0 +1,29 @@
+services:
+  library:
+    build:
+      context: ../..
+      dockerfile: deploy/calibration-lab/Dockerfile
+    image: atmos-calibration-library:local
+    restart: unless-stopped
+    init: true
+    environment:
+      ATMOS_LOCAL_STATE_ROOT: /data/state
+      ATMOS_MSPEPSEARCH_URL: ${ATMOS_MSPEPSEARCH_URL:-}
+      ATMOS_MSPEPSEARCH_TOKEN: ${ATMOS_MSPEPSEARCH_TOKEN:-}
+    ports:
+      - "127.0.0.1:8787:8787"
+    volumes:
+      - ../../data/state:/data/state
+      - ../../data/source:/data/source:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8787/api/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"

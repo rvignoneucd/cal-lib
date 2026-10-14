@@ -1,0 +1,7 @@
+fastapi==0.143.0
+uvicorn==0.42.0
+numpy==2.5.3
+scipy==1.18.1
+rainbow-api==1.5.3
+rdkit==2026.3.6
+openpyxl==3.1.5

@@ -1,0 +1,45 @@
+.atmos-sliding-pill {
+  position: relative; isolation: isolate; display: inline-grid;
+  grid-template-columns: repeat(var(--pill-count), minmax(0, 1fr));
+  gap: 2px; padding: 3px; border: 1px solid var(--control-border);
+  border-radius: var(--control-radius); background: var(--control-surface);
+  max-width: 100%; box-sizing: border-box;
+}
+.atmos-sliding-pill::before {
+  content: ''; position: absolute; left: 3px; top: 3px; bottom: 3px;
+  width: calc((100% - 6px - (var(--pill-count) - 1) * 2px) / var(--pill-count));
+  background: var(--control-active); border-radius: var(--control-radius);
+  transform: translateX(calc(var(--pill-index) * (100% + 2px)));
+  transition: transform 160ms ease; pointer-events: none;
+}
+:root .atmos-sliding-pill:is([role='radiogroup'], [role='tablist']) > button,
+:root .atmos-sliding-pill:is([role='radiogroup'], [role='tablist']) > button:hover {
+  position: relative; z-index: 1; min-width: 0; min-height: 26px;
+  padding: 0 10px; border: 0; border-radius: var(--control-radius);
+  background: transparent; box-shadow: none; color: var(--control-text);
+  font-size: var(--control-font-size); white-space: nowrap;
+}
+:root .atmos-sliding-pill:is([role='radiogroup'], [role='tablist']) > button:is([aria-checked='true'], [aria-selected='true']) { color: #fff; }
+.atmos-sliding-pill-icons > button {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; padding: 0;
+}
+.atmos-sliding-pill-icons > button > svg { width: 16px; height: 16px; }
+.atmos-sliding-pill-vertical {
+  width: 42px; max-width: none; flex-shrink: 0;
+  grid-template-columns: 34px;
+  grid-template-rows: repeat(var(--pill-count), 34px);
+}
+.atmos-sliding-pill-vertical::before {
+  width: 34px; height: 34px; bottom: auto;
+  transform: translateY(calc(var(--pill-index) * (100% + 2px)));
+}
+:root .atmos-sliding-pill-vertical:is([role='radiogroup'], [role='tablist']) > button {
+  width: 34px; height: 34px; padding: 0;
+}
+.atmos-sliding-pill-vertical > button > svg { width: 20px; height: 20px; }
+.atmos-sliding-pill > button:focus-visible { outline: 2px solid var(--control-focus); outline-offset: 1px; }
+.atmos-sliding-pill-vertical > button:focus-visible { outline-offset: -2px; }
+.atmos-sliding-pill > button:focus:not(:focus-visible) { outline: none; }
+.atmos-sliding-pill > button:disabled { opacity: .55; cursor: not-allowed; }
+@media (prefers-reduced-motion: reduce) { .atmos-sliding-pill::before { transition: none; } }

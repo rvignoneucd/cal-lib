@@ -1,0 +1,16 @@
+node_modules/
+dist-calibration-lab/
+data/
+tmp/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.env*
+!.env.example
+*.sqlite*
+*.db
+*.D/
+*.tar.gz
+*.pem
+*.key

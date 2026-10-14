@@ -1,0 +1,80 @@
+/* Box picker Find: search names under the current folder and jump to the
+   folder that holds a result. */
+:root[data-theme="dark"] .instrument-row .path-cell > input,
+:root[data-theme="dark"] .box-selection-actions input.box-exclude-filter,
+:root[data-theme="dark"] .box-picker-shell input.box-picker-filter {
+  background: #202226;
+  color: var(--atmos-ui-text, #f1f3f5);
+  border: 1px solid #55585f;
+  border-radius: 999px;
+  padding-inline: 12px;
+}
+:root[data-theme="dark"] .box-selection-actions input.box-exclude-filter::placeholder,
+:root[data-theme="dark"] .box-picker-shell input.box-picker-filter::placeholder {
+  color: #b5bac3;
+  opacity: 1;
+}
+:root[data-theme="dark"] .box-selection-actions input.box-exclude-filter:focus,
+:root[data-theme="dark"] .box-picker-shell input.box-picker-filter:focus {
+  border-color: var(--atmos-ui-accent, #22c5d5);
+  outline: 2px solid var(--atmos-ui-accent-soft, #22c5d533);
+  outline-offset: 1px;
+}
+.box-picker-find {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 12px;
+}
+.box-selection-actions { flex-wrap: wrap; }
+.box-extension-filters { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+.box-selection-actions .box-extension-pill { border-radius: 999px; min-height: 32px; padding: 5px 12px; }
+.instrument-row .box-selection-actions button.box-extension-pill.active,
+.instrument-row .box-selection-actions button.box-extension-pill.active:hover:not(:disabled),
+:root[data-theme="dark"] .instrument-row .box-selection-actions button.box-extension-pill.active {
+  border-color: var(--atmos-ui-accent-strong, #007f91);
+  background: var(--atmos-ui-accent-strong, #007f91);
+  color: #fff;
+}
+
+.box-picker-find .box-picker-filter {
+  flex: 1 1 auto;
+}
+
+.box-picker-shell .picker-button.active {
+  border-color: var(--atmos-ui-accent, #4f5bd5);
+  color: var(--atmos-ui-accent, #4f5bd5);
+}
+
+.box-picker-find-row .picker-row-name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+
+.box-picker-find-path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.box-picker-find-row.selected,
+.box-picker-shell .picker-row.found {
+  border-color: var(--atmos-ui-accent, #4f5bd5);
+  background: color-mix(in srgb, var(--atmos-ui-accent, #4f5bd5) 12%, transparent);
+}
+
+.box-picker-found {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 12px 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  background: color-mix(in srgb, var(--atmos-ui-accent, #4f5bd5) 12%, transparent);
+}

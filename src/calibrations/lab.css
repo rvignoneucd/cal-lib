@@ -1,0 +1,212 @@
+.lab-intake { margin: 0 36px; padding: 18px 0; border-bottom: 1px solid var(--control-border); }
+.manual-library { margin:18px 28px; }
+.cal-copy { min-width:40px; max-width:150px; }
+.cal-site .cal-preview-blocks tr.cal-point-highlight { background:color-mix(in srgb,var(--control-focus) 22%,var(--control-surface)); outline:2px solid var(--control-focus); outline-offset:-2px; }
+.cal-is-toggle { display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.cal-is-toggle label { font-size:12px; }
+.cal-is-toggle small { flex-basis:100%; }
+.cal-copy-feedback { display:block; font-size:12px; white-space:normal; margin-top:4px; }
+.manual-library > .cal-table-wrap { margin-top:16px; }
+.manual-library tbody tr { background:color-mix(in srgb, #9a6c18 10%, transparent); }
+.manual-badge { color:var(--control-text); font-weight:600; border-left:3px solid #b88625; padding-left:8px; white-space:nowrap; }
+.manual-dialog { width:1100px; max-width:calc(100vw - 32px); max-height:calc(100vh - 48px); box-sizing:border-box; overflow:auto; background:var(--control-surface); color:var(--control-text); border:1px solid var(--control-border); border-radius:8px; padding:20px; }
+.manual-dialog::backdrop { background:rgb(0 0 0 / 45%); }
+.cal-file-picker { width:760px; }
+.cal-file-picker-list { max-height:50dvh; overflow:auto; margin-top:12px; }
+.manual-dialog .cal-file-choice { flex-direction:row; align-items:center; gap:12px; padding:12px 0; }
+.manual-dialog .cal-file-choice input { width:auto; flex:none; }
+.cal-file-picker-list .cal-file-choice { border-bottom:1px solid var(--control-border); }
+.cal-file-choice span { min-width:0; overflow-wrap:anywhere; }
+.cal-file-choice small { display:block; color:var(--control-text); margin-top:4px; }
+.manual-dialog fieldset { border:0; padding:0; margin:0; min-width:0; }
+.manual-dialog label { display:flex; flex-direction:column; gap:6px; font-size:13px; min-width:0; }
+.manual-dialog input,.manual-dialog textarea { width:100%; min-width:0; box-sizing:border-box; }
+.manual-dialog .cal-fields { margin:16px 0; }
+.manual-rows { margin-bottom:12px; }
+.manual-row { display:grid; grid-template-columns:minmax(180px,2fr) repeat(4,minmax(100px,1fr)) 32px; gap:10px; padding:12px 0; border-block-start:1px solid var(--control-border); align-items:start; }
+.manual-row small { display:block; font-size:12px; margin-top:6px; }
+.manual-dialog footer { margin-top:16px; }
+.manual-fit { width:256px; margin:8px 0; }
+@media(max-width:700px){ .manual-row{grid-template-columns:repeat(2,minmax(0,1fr));}.manual-row > :first-child {grid-column:1/-1;}.manual-library{margin:16px;} }
+.lab-intake h2 { font-size: 14px; margin: 0; }
+.lab-console { margin: 20px 36px; padding: 16px 0; border-top: 1px solid var(--control-border); overflow-wrap: anywhere; }
+.lab-console summary { cursor:pointer; }
+.lab-console .lab-metrics { margin-top:16px; }
+.cal-run-item { display:flex; align-items:center; gap:6px; min-width:0; }
+.cal-warning-flag { display:inline-block; position:relative; color:#986400; vertical-align:middle; }
+.cal-warning-flag summary { display:inline-flex; cursor:pointer; list-style:none; }
+.cal-warning-flag summary::-webkit-details-marker { display:none; }
+.cal-warning-flag span { position:absolute; right:0; top:100%; width:240px; max-width:70vw; z-index:20; background:var(--control-bg, white); color:var(--control-text, #242a29); border:1px solid var(--control-border); padding:8px; font-size:12px; overflow-wrap:anywhere; }
+.lab-metrics { display: flex; flex-wrap: wrap; gap: 12px 28px; font-size: 13px; }
+.lab-intake details { margin-top: 12px; }
+.lab-intake summary { cursor: pointer; }
+.lab-intake p { overflow-wrap: anywhere; }
+.cal-site [hidden] { display: none; }
+.cal-series-heading { white-space:normal; overflow-wrap:anywhere; max-width:100%; }
+.cal-lab-main .cal-library-table tr:has(.cal-series-heading) { background:#dceeea; }
+.cal-lab-main .cal-library-table tr:has(.cal-expand) { background:#f2f5fa; }
+.cal-lab-main .cal-library-table tr:has(.cal-inline-preview) { background:#fff; }
+:root[data-theme='dark'] .cal-lab-main .cal-library-table tr:has(.cal-series-heading) { background:#24433e; }
+:root[data-theme='dark'] .cal-lab-main .cal-library-table tr:has(.cal-expand) { background:#292e38; }
+:root[data-theme='dark'] .cal-lab-main .cal-library-table tr:has(.cal-inline-preview) { background:#191c20; }
+.cal-lab-main .cal-library-table tr:has(.cal-expand) > td:first-child { padding-left:24px; }
+.cal-curve-thumbnail { display:flex; flex-direction:column; margin:0; width:256px; white-space:normal; }
+.cal-curve-thumbnail-chart { width:256px; height:256px; }
+.cal-curve-thumbnail-chart .cal-plot { width:256px; height:256px; min-height:0; }
+.cal-curve-thumbnail-chart > span { display:flex; align-items:center; justify-content:center; height:100%; padding:16px; box-sizing:border-box; overflow-wrap:anywhere; }
+.cal-curve-thumbnail figcaption { order:-1; min-height:40px; box-sizing:border-box; font-size:14px; font-weight:600; padding:4px 0 12px; color:var(--control-text); }
+.cal-compound-library tbody tr:nth-child(odd) { background:#f2f5fa; }
+:root[data-theme='dark'] .cal-compound-library tbody tr:nth-child(odd) { background:#292e38; }
+.cal-site .cal-compound-library tbody .cal-compound-header { background:#dce8e8; }
+.cal-site .cal-compound-library tbody .cal-compound-body { background:#fbfcfb; }
+:root[data-theme='dark'] .cal-site .cal-compound-library tbody .cal-compound-header { background:#1b3235; }
+:root[data-theme='dark'] .cal-site .cal-compound-library tbody .cal-compound-body { background:#242725; }
+.cal-site .cal-compound-library .cal-compound-header > td { padding:14px 10px; vertical-align:middle; }
+.cal-site .cal-compound-library .cal-compound-header .dropdown { margin-bottom:0; }
+.cal-site .cal-compound-library .cal-compound-header > td > .cal-text-link { min-height:0; padding-bottom:0; }
+.cal-site .cal-compound-library .cal-compound-body > td { padding:12px 10px 20px; }
+.cal-compound-library td { vertical-align:top; white-space:normal; overflow-wrap:anywhere; padding-top:18px; }
+.cal-compound-library tbody td:first-child > .cal-text-link { display:block; font-size:18px; font-weight:600; line-height:1.25; min-height:40px; padding-bottom:12px; }
+.cal-compound-library tbody td:nth-child(n+3) { padding-top:22px; }
+.cal-compound-library th .cal-sort-heading { white-space:nowrap; overflow-wrap:normal; }
+.cal-compound-library > tbody > tr > td:first-child { min-width:240px; max-width:380px; }
+.cal-compound-library > tbody > tr > td:nth-child(2) { width:340px; }
+.cal-row-actions { display:flex; align-items:flex-start; gap:6px; min-width:126px; }
+.cal-row-actions .cal-copy { width:36px; min-width:36px; }
+.cal-row-actions .cal-copy-feedback { max-width:36px; overflow-wrap:normal; }
+.cal-site .cal-compound-library thead th { background:#dce3e6; color:#263d47; }
+:root[data-theme='dark'] .cal-site .cal-compound-library thead th { background:#181d22; color:#e2e9ed; }
+.lab-tools { display:flex; flex-wrap:wrap; align-items:center; gap:12px 24px; padding:12px 28px; border-bottom:1px solid var(--control-border); }
+.lab-tools:not(:has(table,dialog[open])) { padding:0; border:0; }
+.cal-site .cal-masthead { flex-wrap:wrap; }
+.cal-site .cal-masthead nav { flex-wrap:wrap; max-width:100%; }
+.cal-site .cal-masthead nav > .dropdown { flex:0 0 110px; width:110px; min-width:0; }
+.cal-site .cal-masthead nav > .atmos-sliding-pill { flex:none; width:280px; max-width:100%; }
+.cal-site .cal-masthead nav > .cal-repositories { flex:0 0 180px; width:180px; min-width:0; }
+.cal-site .cal-masthead nav > .icon-button { flex:none; }
+.lab-tools .manual-library { margin:0; }
+.lab-tools .manual-library:not(:has(button,table,[role='alert'])) { display:none; }
+.cal-repositories { min-width:180px; max-width:100%; }
+.cal-repository-row { display:grid; grid-template-columns:minmax(100px,1fr) minmax(180px,2fr) 36px; gap:12px; align-items:end; padding:12px 0; }
+@media(max-width:700px) { .cal-repository-row { grid-template-columns:minmax(0,1fr) 36px; }.cal-repository-row > label:first-child { grid-column:1/-1; } }
+.lab-tools .manual-library:has(table) { flex-basis:100%; min-width:0; }
+.lab-tools .lab-intake { flex:1; margin:0; padding:0; border:0; }
+.lab-tools .lab-intake .cal-section-heading,.lab-tools .lab-intake .cal-toolbar { margin:0; }
+.lab-tools .lab-intake h2 { margin-left:auto; }
+.lab-tools + div > .cal-lab-main { padding-top:16px; }
+.cal-mobile-disclosure { background:color-mix(in srgb,var(--control-text) 6%,transparent); }
+.cal-compound-library .cal-text-link { white-space:normal; text-align:left; overflow-wrap:anywhere; }
+.cal-sort-heading { display:inline-flex; align-items:center; gap:4px; }
+.cal-compound-info { min-width:200px; max-width:340px; font-size:12px; margin-top:8px; }
+.cal-compound-info img { display:block; object-fit:contain; max-width:100%; }
+.cal-compound-info-structure { margin:0; height:256px; }
+.cal-compound-info-structure img { width:100%; height:100%; }
+.cal-compound-info-details { margin:0; max-width:560px; font-size:14px; line-height:1.3; }
+.cal-compound-info-details small { font-size:12px; }
+.cal-compound-library .cal-curve-thumbnail { width:320px; }
+.cal-compound-library .cal-curve-thumbnail-chart { width:100%; height:256px; padding:8px; box-sizing:border-box; border:1px solid var(--control-border); border-radius:4px; }
+.cal-compound-library .cal-curve-thumbnail-chart .cal-plot { width:100%; height:100%; }
+.cal-compound-info-details dl { margin-top:0; }
+.cal-compound-info dl { display:grid; grid-template-columns:90px minmax(0,1fr); gap:4px 8px; }
+.cal-compound-info dd { margin:0; overflow-wrap:anywhere; }
+.cal-compound-info details { margin-top:8px; }
+.cal-compound-library th[aria-sort='none'] .cal-sort-heading > :last-child { visibility:hidden; }
+.cal-identity { border-top:1px solid var(--control-border); padding:16px 0; }
+.cal-identity-spectrum { height:280px; min-width:0; }
+.cal-identity-hits { max-height:360px; overflow:auto; }
+.cal-identity-hits table { table-layout:fixed; }
+.cal-identity-hits td,.cal-identity-hits th { overflow-wrap:anywhere; white-space:normal; }
+.cal-lab-main { max-width:none; }
+.cal-compound-board { border-block:1px solid var(--control-border); margin-bottom:18px; padding:12px 0; }
+.cal-compound-columns { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; }
+.cal-compound-columns > section { min-width:0; }
+.cal-compound-columns h2 { padding:8px 0; border-bottom:1px solid var(--control-border); }
+.cal-compound-items { max-height:360px; overflow:auto; scrollbar-gutter:stable; }
+.cal-compound-row { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 0; border-bottom:1px solid var(--control-border); font-size:13px; }
+.cal-compound-row > div:first-child { min-width:0; overflow-wrap:anywhere; }
+.cal-compound-row small { display:block; color:var(--atmos-ui-muted); margin-top:4px; }
+.cal-compound-actions { display:flex; gap:4px; flex:none; }
+.cal-lab-main .cal-table-wrap[aria-label='Standard injections'] table { table-layout:fixed; }
+.cal-lab-main .cal-table-wrap[aria-label='Standard injections'] :is(td,th) { overflow-wrap:anywhere; padding:8px 5px; }
+.cal-lab-main .cal-table-wrap[aria-label='Standard injections'] :is(td,th):first-child,
+.cal-lab-main .cal-table-wrap[aria-label='Standard injections'] :is(td,th):last-child { width:40px; }
+.cal-lab-main .cal-table-wrap[aria-label='Standard injections'] td .dropdown { min-width:0; width:100%; }
+.cal-lab-main .cal-table-wrap[aria-label='Standard injections'] td input:not([type='checkbox']) { min-width:0; width:100%; }
+@media(max-width:850px) { .cal-compound-columns { grid-template-columns:minmax(0,1fr); } }
+@media (max-width: 600px) { .lab-intake { margin: 0 16px; } .cal-masthead nav { flex-wrap: wrap; } }
+
+.cal-mobile-sort { display:flex; align-items:end; gap:12px; margin-bottom:16px; }
+.lab-intake-disclosure { display:none; }
+.cal-mobile-sort label { display:flex; flex:1; flex-direction:column; gap:6px; min-width:0; font-size:13px; }
+.cal-mobile-library { border-top:1px solid var(--control-border); }
+.cal-source-library { border-top:1px solid var(--control-border); }
+.cal-source-group { border-bottom:1px solid var(--control-border); }
+.cal-source-files { padding:8px 0 14px; font-size:13px; overflow-wrap:anywhere; }
+.cal-source-files summary { cursor:pointer; }
+.cal-source-files ul { padding-left:20px; line-height:1.8; }
+.cal-source-compound { border-top:1px solid var(--control-border); padding-left:20px; }
+.cal-source-compound .cal-mobile-disclosure { min-height:60px; }
+.cal-source-compound .cal-mobile-disclosure strong { font-size:18px; }
+.cal-source-preview { display:flex; flex-wrap:wrap; gap:20px; align-items:start; }
+.cal-source-preview > * { min-width:0; max-width:100%; }
+.cal-source-files summary:focus-visible { outline:2px solid var(--control-focus); outline-offset:2px; }
+.cal-mobile-compound { border-bottom:1px solid var(--control-border); }
+.cal-mobile-disclosure { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; min-height:72px; padding:14px 0; border:0; background:transparent; color:var(--control-text); text-align:left; cursor:pointer; }
+.cal-mobile-disclosure > span { min-width:0; }
+.cal-mobile-disclosure > svg { flex:none; }
+.cal-mobile-disclosure strong { display:block; font-size:18px; line-height:1.35; overflow-wrap:anywhere; }
+.cal-mobile-disclosure small { display:block; font-size:13px; margin-top:6px; color:var(--atmos-ui-muted); overflow-wrap:anywhere; }
+.cal-mobile-disclosure:focus-visible { outline:2px solid var(--control-focus); outline-offset:-2px; }
+.cal-mobile-details { padding:0 0 20px; min-width:0; }
+.cal-mobile-details .cal-curve-thumbnail { margin:0 auto 16px; }
+.cal-mobile-details .cal-compound-info { max-width:none; min-width:0; }
+.cal-mobile-details .cal-compound-info img { margin:auto; }
+.cal-mobile-details > dl { display:grid; grid-template-columns:85px minmax(0,1fr); gap:8px 12px; font-size:13px; border-top:1px solid var(--control-border); padding-top:16px; }
+.cal-mobile-details dd { margin:0; overflow-wrap:anywhere; }
+.cal-mobile-actions { display:flex; flex-wrap:wrap; align-items:start; gap:10px; }
+@media(max-width:700px) {
+  .lab-tools { padding:10px 16px; gap:8px; }
+  .lab-tools .lab-intake { flex-basis:100%; margin:0; padding:0; }
+  .lab-tools .lab-intake h2 { margin-left:0; }
+  .cal-site .cal-masthead { flex-wrap:wrap; gap:10px; }
+  .cal-site .cal-masthead nav { flex-basis:100%; margin-left:0; justify-content:space-between; gap:8px; }
+  .cal-lab-main { padding:18px 16px; min-width:0; }
+  .cal-lab-main > .cal-toolbar { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; }
+  .cal-lab-main > .cal-toolbar > input { grid-column:1/-1; width:100%; min-width:0; box-sizing:border-box; }
+  .cal-lab-main > .cal-toolbar > [role='radiogroup'] { min-width:0; overflow-x:auto; }
+  .cal-site input:not([type='checkbox']),.cal-site textarea { font-size:16px; }
+  .cal-site .lab-intake { padding:12px 0; margin:0 16px; }
+  .lab-intake-disclosure { display:flex; width:100%; min-height:44px; align-items:center; justify-content:space-between; border:0; background:transparent; color:var(--control-text); text-align:left; }
+  .lab-intake-disclosure:focus-visible { outline:2px solid var(--control-focus); }
+  .lab-intake:not(.lab-intake-expanded) .cal-section-heading { display:none; }
+  .lab-intake .cal-section-heading { display:block; }
+  .lab-intake .cal-toolbar { margin:10px 0 0; gap:8px; }
+  .cal-site .lab-console { margin:16px; }
+  .cal-lab-main .cal-title { gap:8px; margin-bottom:16px; }
+  .cal-lab-main .cal-title > div:first-child { flex-basis:100%; }
+  .manual-dialog { padding:14px; max-height:calc(100dvh - 24px); max-width:calc(100vw - 20px); }
+}
+.lab-intake-status { display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px; padding:12px 24px; border-block:1px solid var(--control-border); background:var(--control-surface); color:var(--control-text); font-size:13px; position:fixed; z-index:900; bottom:16px; right:16px; max-width:min(560px,calc(100vw - 32px)); max-height:35dvh; overflow:auto; box-sizing:border-box; }
+.lab-intake-status progress { width:180px; max-width:100%; accent-color:var(--control-active); }
+.lab-intake-status span { overflow-wrap:anywhere; min-width:0; }
+.lab-intake-status small { color:var(--atmos-ui-muted); }
+.cal-preview-details { display:grid; grid-template-columns:minmax(180px,360px) minmax(340px,540px); justify-content:space-between; gap:24px; align-items:start; }
+.cal-preview-blocks { display:grid; grid-template-columns:minmax(160px,210px) minmax(200px,310px); gap:20px; min-width:0; width:100%; max-width:540px; align-items:start; }
+.cal-preview-blocks section { min-width:0; }
+.cal-preview-blocks .cal-table-wrap { max-height:260px; overflow:auto; }
+.cal-preview-blocks td,.cal-preview-blocks th { padding:5px 8px; }
+.cal-preview-blocks .cal-fit-stats { display:grid; grid-template-columns:auto max-content; gap:12px; margin:5px 0; }
+.cal-preview-blocks .cal-fit-stats dt { margin:0; }
+.cal-preview-blocks .cal-fit-stats dd { margin:0; white-space:nowrap; }
+.workbook-review-grid > .cal-table-wrap table { min-width:480px; }
+.workbook-review-grid > .cal-table-wrap { overflow:auto; }
+.workbook-library { min-width:0; }
+.workbook-library details > button { display:block; text-align:left; margin:8px 0; }
+.workbook-dialog fieldset { border:0; padding:0; min-width:0; }
+.workbook-dialog .cal-toolbar { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.workbook-review-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:20px; margin:16px 0; }
+.workbook-review-grid input[type=number] { min-width:80px; }
+.workbook-dialog .cal-file-choice { display:flex; flex-direction:row; gap:8px; margin:12px 0; }
+.workbook-dialog input[type=checkbox] { width:auto; }
+@media(max-width:1100px) { .cal-preview-details { grid-template-columns:1fr; } }
+@media(max-width:700px) { .cal-preview-blocks,.workbook-review-grid { grid-template-columns:1fr; } }

@@ -1,0 +1,93 @@
+.cal-site { min-height: 100%; background: #fbfcfb; color: #242a29; letter-spacing: 0; }
+:root[data-theme='dark'] .cal-site { background: #242725; color: #eceeed; }
+.cal-masthead { display:flex; align-items:center; gap:12px; padding:18px 28px; border-bottom:1px solid var(--control-border); background:var(--control-surface); }
+.cal-masthead > svg { color:var(--control-active); flex:none; }
+.cal-masthead strong { display:block; font-size:18px; }
+.cal-masthead span { font-size:12px; color:var(--atmos-ui-muted); }
+.cal-masthead nav { margin-left:auto; display:flex; align-items:center; gap:12px; }
+.cal-main { max-width:1700px; padding:24px 28px; margin:auto; }
+.cal-title { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:22px; }
+.cal-title > div:first-of-type { flex:1; min-width:180px; }
+.cal-title > .dropdown { flex:0 1 320px; width:320px; max-width:100%; }
+.cal-site h1 { font-size:18px; line-height:1.3; margin:0 0 4px; overflow-wrap:anywhere; }
+.cal-site h2,.cal-site h3 { font-size:14px; margin:0; }
+.cal-site small,.cal-site sup,.cal-site sub { font-size:12px; }
+.cal-expand { border:0; background:transparent; color:var(--control-text); cursor:pointer; padding:6px; vertical-align:middle; }
+.cal-expand:focus-visible { outline:2px solid var(--control-focus); }
+.cal-inline-preview { display:grid; grid-template-columns:minmax(240px,400px) minmax(0,1fr); gap:24px; }
+.cal-review .cal-inline-preview { grid-template-columns:minmax(0,1fr); }
+.cal-equation { font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+.cal-inline-preview .cal-plot { max-width:480px; }
+.cal-review.cal-review .cal-plot { max-width:none; }
+@media(max-width:700px) { .cal-inline-preview { grid-template-columns:minmax(0,1fr); } }
+@media(max-width:700px) {
+  .cal-library-table,.cal-library-table>tbody,.cal-library-table>tbody>tr,.cal-library-table>tbody>tr>td { display:block; width:100%; min-width:0; box-sizing:border-box; white-space:normal; }
+  .cal-library-table>thead { display:none; }
+  .cal-library-table>tbody>tr>td { overflow-wrap:anywhere; }
+  .cal-library-table .cal-text-link { white-space:normal; overflow-wrap:anywhere; }
+  .cal-inline-preview table { table-layout:fixed; }
+  .cal-inline-preview th,.cal-inline-preview td { overflow-wrap:anywhere; white-space:normal; }
+}
+.cal-title span,.cal-subtle { color:var(--atmos-ui-muted); font-size:13px; }
+.cal-toolbar { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:18px; }
+.cal-toolbar > input { flex:1; min-width:220px; }
+.cal-builder { display:grid; grid-template-columns:minmax(0,1.7fr) minmax(320px,1fr); gap:28px; }
+.cal-editor section { border-top:1px solid var(--control-border); padding:18px 0; }
+.cal-editor section > h2 { margin-bottom:14px; }
+.cal-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 18px; margin-bottom:18px; }
+.cal-fields label { display:flex; flex-direction:column; gap:6px; font-size:13px; min-width:0; }
+.cal-fields input { width:100%; min-width:0; }
+.cal-section-heading { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:16px; }
+.cal-table-wrap { overflow:auto; max-width:100%; scrollbar-gutter:stable; }
+.cal-site table { width:100%; border-collapse:collapse; text-align:left; font-size:13px; }
+.cal-site th { padding:12px 10px; color:var(--atmos-ui-muted); background:var(--control-surface); font-weight:600; border-bottom:1px solid var(--control-border); }
+.cal-site td { padding:12px 10px; border-bottom:1px solid var(--control-border); vertical-align:top; }
+.cal-site td small { display:block; color:var(--atmos-ui-muted); margin-top:5px; }
+.cal-site td .dropdown { display:flex; min-width:190px; margin-bottom:6px; }
+.cal-site input[type='checkbox'] { width:auto; }
+.cal-site td input:not([type='checkbox']) { width:145px; }
+.cal-text-link { appearance:none; border:0; background:none; padding:0; text-align:left; cursor:pointer; color:var(--control-focus); font:inherit; font-weight:600; }
+:root[data-theme='dark'] .cal-site .cal-text-link { background:transparent; box-shadow:none; color:var(--control-focus); }
+.cal-site .cal-table-wrap:focus:not(:focus-visible) { outline:none; }
+.cal-site .cal-table-wrap:focus-visible,
+.cal-site .cal-text-link:focus-visible { outline:2px solid var(--control-focus); outline-offset:2px; }
+.cal-published { color:#086451; font-weight:600; }
+.cal-draft { color:#8a4d0e; }
+:root[data-theme='dark'] .cal-published { color:#81dec4; }
+:root[data-theme='dark'] .cal-draft { color:#f3c789; }
+.cal-review { min-width:0; border-left:1px solid var(--control-border); padding-left:24px; }
+.cal-review h2 { margin-bottom:12px; }
+.cal-plot { position:relative; width:100%; aspect-ratio:1; min-width:0; overflow:hidden; }
+.cal-plot > div { position:absolute; inset:0; }
+.cal-fit-stats { display:grid; grid-template-columns:1fr 1fr; gap:8px 16px; font-size:13px; font-variant-numeric:tabular-nums; }
+.cal-fit-stats dt { color:var(--atmos-ui-muted); }
+.cal-fit-stats dd { margin:0; text-align:right; overflow-wrap:anywhere; }
+.cal-check { display:flex; align-items:flex-start; gap:8px; font-size:13px; line-height:1.5; margin:16px 0; }
+.cal-check input { margin-top:3px; }
+.cal-publication { border-top:1px solid var(--control-border); margin-top:18px; padding-top:4px; }
+.cal-alert { color:#aa2727; padding:12px 0; margin:0 0 14px; }
+:root[data-theme='dark'] .cal-alert { color:#ffb4b4; }
+.cal-notice { color:var(--control-focus); padding:10px 0; }
+.cal-notice-stack { position:fixed; z-index:100000; right:16px; bottom:16px; display:flex; flex-direction:column; align-items:flex-end; gap:8px; max-width:calc(100vw - 32px); max-height:50dvh; overflow:auto; pointer-events:none; }
+.cal-action-notice { pointer-events:auto; flex:none; width:max-content; max-width:100%; box-sizing:border-box; display:flex; align-items:center; gap:12px; padding:12px; border:1px solid var(--control-border); border-radius:8px; background:var(--control-surface); color:var(--control-text); box-shadow:0 3px 16px #0003; overflow-wrap:anywhere; }
+.cal-action-notice > div { min-width:0; }
+.cal-action-notice .icon-button { flex:none; }
+.cal-copy-feedback { position:absolute !important; width:1px !important; height:1px !important; padding:0 !important; margin:-1px !important; overflow:hidden !important; clip-path:inset(50%); white-space:nowrap !important; }
+.cal-empty,.cal-message { padding:28px; color:var(--atmos-ui-muted); }
+.cal-workspace-link { display:inline-flex; align-items:center; gap:6px; margin-top:24px; color:var(--control-focus); font-size:13px; }
+.cal-version-id { overflow-wrap:anywhere; font-size:12px; color:var(--atmos-ui-muted); }
+.cal-run-selection { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr)); gap:6px 16px; max-height:180px; overflow:auto; margin-bottom:12px; }
+.cal-run-selection .cal-check { min-width:0; margin:0; overflow-wrap:anywhere; }
+.cal-candidates { max-height:360px; margin-bottom:20px; }
+.cal-candidate-review { padding-top:16px; border-top:1px solid var(--control-border); }
+.cal-candidate-review h3 { font-size:14px; margin:0; overflow-wrap:anywhere; }
+.cal-chromatogram { position:relative; width:100%; height:340px; min-width:0; overflow:hidden; margin-bottom:16px; }
+.cal-chromatogram > div { position:absolute; inset:0; }
+.cal-builder:has(.cal-review-expanded) { grid-template-columns:minmax(0,1fr); }
+.cal-review-expanded .cal-chromatogram { height:65vh; height:65dvh; min-height:340px; }
+.cal-preparation .cal-toolbar { margin:0; }
+.cal-load-standards { border-bottom:1px solid var(--control-border); padding-bottom:18px; margin-bottom:18px; }
+.cal-load-standards h3 { margin:0; font-size:14px; }
+.cal-discover { padding:18px 0; margin-bottom:18px; border-block:1px solid var(--control-border); }
+@media(max-width:1000px) { .cal-builder { grid-template-columns:minmax(0,1fr); } .cal-review { border-left:0; border-top:1px solid var(--control-border); padding:20px 0; } .cal-plot { max-width:560px; } }
+@media(max-width:560px) { .cal-masthead { padding:14px 16px; } .cal-masthead nav > span { display:none; } .cal-main { padding:18px 16px; } .cal-fields { grid-template-columns:minmax(0,1fr); } .cal-title { align-items:flex-start; } }
