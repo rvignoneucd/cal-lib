@@ -86,6 +86,23 @@
 .cal-row-actions .cal-copy-feedback { max-width:36px; overflow-wrap:normal; }
 .cal-site .cal-compound-library thead th { background:#dce3e6; color:#263d47; }
 :root[data-theme='dark'] .cal-site .cal-compound-library thead th { background:#181d22; color:#e2e9ed; }
+.cal-site .cal-lab-main > .cal-table-wrap[aria-label='Calibration library'] {
+  margin-inline:-28px;
+  width:calc(100% + 56px);
+  overflow:visible;
+}
+.cal-site .cal-compound-library {
+  width:100%;
+  max-width:none;
+  border-collapse:collapse;
+  border-spacing:0;
+}
+.cal-site .cal-compound-library thead th {
+  position:sticky;
+  top:0;
+  z-index:30;
+  box-shadow:0 1px 0 var(--control-border);
+}
 .lab-tools { display:flex; flex-wrap:wrap; align-items:center; gap:12px 24px; padding:12px 28px; border-bottom:1px solid var(--control-border); }
 .lab-tools:not(:has(table,dialog[open])) { padding:0; border:0; }
 .cal-site .cal-masthead { flex-wrap:wrap; }
@@ -150,6 +167,14 @@
 .cal-lab-main .cal-table-wrap[aria-label='Standard injections'] td input:not([type='checkbox']) { min-width:0; width:100%; }
 @media(max-width:850px) { .cal-compound-columns { grid-template-columns:minmax(0,1fr); } }
 @media (max-width: 600px) { .lab-intake { margin: 0 16px; } .cal-masthead nav { flex-wrap: wrap; } }
+
+@media (max-width: 1100px) {
+  .cal-site .cal-lab-main > .cal-table-wrap[aria-label='Calibration library'] {
+    margin-inline:-16px;
+    width:calc(100% + 32px);
+    overflow-x:auto;
+  }
+}
 
 .cal-mobile-sort { display:flex; align-items:end; gap:12px; margin-bottom:16px; }
 .lab-intake-disclosure { display:none; }
