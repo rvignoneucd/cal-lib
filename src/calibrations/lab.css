@@ -138,6 +138,9 @@
 .lab-tools .lab-intake .cal-section-heading,.lab-tools .lab-intake .cal-toolbar { margin:0; }
 .lab-tools .lab-intake h2 { margin-left:auto; }
 .lab-tools + div > .cal-lab-main { padding-top:16px; }
+@media (min-width:701px) {
+  .cal-site .cal-lab-main { padding-top:0 !important; }
+}
 .cal-mobile-disclosure { background:color-mix(in srgb,var(--control-text) 6%,transparent); }
 .cal-compound-library .cal-text-link { white-space:normal; text-align:left; overflow-wrap:anywhere; }
 .cal-sort-heading { display:inline-flex; align-items:center; gap:4px; }
@@ -189,7 +192,7 @@
   .cal-site .cal-lab-main > .cal-table-wrap[aria-label='Calibration library'] {
     margin-inline:-16px;
     width:calc(100% + 32px);
-    overflow-x:auto;
+    overflow:visible;
   }
 }
 
