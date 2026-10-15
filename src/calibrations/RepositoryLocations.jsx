@@ -5,8 +5,14 @@ import {Dropdown} from '../components/AppPrimitives'
 import {apiGet,apiSend} from '../api/client'
 
 export default function RepositoryLocations({instrument}){
-  const [data,setData]=useState(null),[source,setSource]=useState(null),[editor,setEditor]=useState(null),[browser,setBrowser]=useState(null),[error,setError]=useState(''),[busy,setBusy]=useState(false),[notice,setNotice]=useState('')
-  useEffect(()=>{let active=true;setData(null);setSource(null);setError('');Promise.all([apiGet(`/lab/repositories?instrument=${encodeURIComponent(instrument)}`),apiGet(`/lab/source-selection?instrument=${encodeURIComponent(instrument)}`)]).then(([locations,selection])=>{if(active){setData(locations);setSource(selection)}}).catch(e=>{if(active)setError(e.message)});return()=>{active=false}},[instrument])
+  const [data,setData]=useState(null),[source,setSource]=useState(null),[job,setJob]=useState(null),[editor,setEditor]=useState(null),[browser,setBrowser]=useState(null),[error,setError]=useState(''),[busy,setBusy]=useState(false),[notice,setNotice]=useState('')
+  useEffect(()=>{let active=true;setData(null);setSource(null);setJob(null);setError('');Promise.all([apiGet(`/lab/repositories?instrument=${encodeURIComponent(instrument)}`),apiGet(`/lab/source-selection?instrument=${encodeURIComponent(instrument)}`),apiGet('/lab/status')]).then(([locations,selection,status])=>{if(active){setData(locations);setSource(status.selections?.[instrument]||selection);setJob(status.jobs?.[0]||null)}}).catch(e=>{if(active)setError(e.message)});return()=>{active=false}},[instrument])
+  useEffect(()=>{
+    if(!job||!['queued','running'].includes(job.state))return
+    const poll=()=>apiGet('/lab/status').then(status=>{setSource(status.selections?.[instrument]||null);setJob(status.jobs?.[0]||null)}).catch(()=>{})
+    const timer=setInterval(poll,1500)
+    return()=>clearInterval(timer)
+  },[job?.state,instrument])
   function newKey(){return `${instrument}-${Date.now()}-${Math.random().toString(36).slice(2)}`}
   function open(){if(data){setNotice('');setBrowser(null);setEditor({...data,instrument,locations:(data.locations.length?data.locations:[{name:'',path:''}]).map(r=>({...r,key:newKey()}))})}}
   function relativePath(path){
@@ -29,7 +35,7 @@ export default function RepositoryLocations({instrument}){
     const path=browser?.data?.absolute_path
     if(!path)return
     setBusy(true);setError('');setNotice('')
-    try{setEditor(old=>({...old,locations:old.locations.map((item,n)=>n===browser.row?{...item,path}:item)}));const selection=await apiSend(`/lab/source-selection?instrument=${encodeURIComponent(instrument)}`,'PUT',{path});setSource(selection);if(instrument==='GC-MS'){await apiSend('/lab/scan','POST',{});setNotice('GC-MS intake root selected. Scan started.')}else setNotice(`${instrument} watch root selected. The folder will be checked automatically.`);setBrowser(null)}
+    try{setEditor(old=>({...old,locations:old.locations.map((item,n)=>n===browser.row?{...item,path}:item)}));const selection=await apiSend(`/lab/source-selection?instrument=${encodeURIComponent(instrument)}`,'PUT',{path});setSource(selection);if(instrument==='GC-MS'){const scan=await apiSend('/lab/scan','POST',{});setJob(scan.job);setNotice('GC-MS intake root selected. Scan started.')}else setNotice(`${instrument} watch root selected. The folder will be checked automatically.`);setBrowser(null)}
     catch(e){setError(e.message)}finally{setBusy(false)}
   }
   async function save(e){e.preventDefault();setBusy(true);setError('');try{const next=await apiSend(`/lab/repositories?instrument=${encodeURIComponent(editor.instrument)}`,'PUT',editor);setData(next);setEditor(null);setNotice(editor.instrument==='GC-MS'&&!source?.path?'Repository saved. Choose Browse, then Use for GC-MS intake to start importing runs.':'Repository locations saved.')}catch(e){setError(e.message)}finally{setBusy(false)}}
@@ -37,7 +43,7 @@ export default function RepositoryLocations({instrument}){
     <Dropdown aria-label={`${instrument} repositories`} value="" placeholder={`Repositories (${data?.locations.length??0})`} disabled={!data} options={[...(data?.locations||[]).map((r,i)=>({value:String(i),label:r.name,hint:`${r.path} · Pending connection`})),{value:'manage',label:'Manage locations...'}]} onChange={value=>{if(value==='manage')open()}} menuPortal/>
     {error&&!editor&&<ActionNotice error>{error}</ActionNotice>}
     {notice&&!editor&&<ActionNotice>{notice}</ActionNotice>}
-    {source?.path&&<div className="cal-subtle" aria-live="polite">{instrument} watch root: {source.path} · {source.file_count??'Checking'} files{source.last_checked_at?` · checked ${new Date(source.last_checked_at).toLocaleString()}`:''}</div>}
+    {source?.path&&<div className="cal-watch-status" aria-live="polite"><span>{instrument} watch root</span><code title={source.path}>{source.path}</code><span className="cal-watch-progress">{job?.state==='running'||job?.state==='queued'?job.progress||'Scanning...':job?.state==='complete'?`${job.result?.runs??0} runs imported`:`${Number(source.file_count||0).toLocaleString()} files found`}</span></div>}
     {editor&&<div className="cal-modal" role="dialog" aria-modal="true" aria-labelledby="repository-title" tabIndex={-1} onKeyDown={e=>{if(e.key==='Escape'&&!busy)setEditor(null)}}><form className="cal-modal-card atmos-controls" onSubmit={save}>
       <header className="cal-section-heading"><h2 id="repository-title">{editor.instrument} standard repositories</h2><button type="button" className="icon-button" disabled={busy} aria-label="Close repository locations" onClick={()=>setEditor(null)}><X size={18}/></button></header>
       <p className="cal-subtle">Browse the mounted Nguyen Lab share, choose a folder, and save it as a repository. Each instrument can have its own watched root. GC-MS also uses its selected root for intake scanning.</p>
