@@ -133,6 +133,7 @@
   z-index:90;
   margin-inline:-28px;
   padding-inline:28px;
+  padding-block:3px;
   box-sizing:border-box;
   margin-bottom:0;
   background:var(--control-surface,#fff);
