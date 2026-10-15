@@ -29,12 +29,16 @@ import { concentrationOrder } from './standardHints.js'
 import { libraryColumns, sortLibrary } from './librarySort.js'
 
 const ROOT = '/calibration-library'
-const FIELDS = [['instrument','Instrument'],['method','Method'],['column_model','Column model'],['column_phase','Stationary phase'],
+const FIELDS = [['instrument','Instrument'],['instrument_label','GC label'],['method','Method'],['column_model','Column model'],['column_phase','Stationary phase'],
   ['column_length_m','Column length (m)'],['column_id_um','Internal diameter (um)'],['column_film_um','Film thickness (um)'],
   ['acquisition_mode','Acquisition mode'],['area_multiplier','Area multiplier'],['integration','Integration convention']]
 const options = values => values.map(value => ({value,label:value}))
 const format = value => Number.isFinite(value) ? Number(value).toPrecision(6) : '-'
 const emptyDraft = () => ({name:'',compound:'',project_id:'',mode:'external',unit:'ug/mL',profile:{response:'TIC'},rows:[],force_zero:false,versions:[],editable:true})
+function InstrumentMeta({profile}) {
+  const label=profile?.instrument_label||profile?.instrument||'-'
+  return <><strong>{label}</strong>{profile?.instrument_label&&profile?.instrument&&<small>{profile.instrument}</small>}</>
+}
 
 function CurvePlot({ fit, mode, unit, theme, normalized=false, compact=false, highlightedPoint=null, onHighlight }) {
   const dark = theme === 'dark'
@@ -308,7 +312,7 @@ export default function CalibrationLibrary({ theme, lab=false, onDiscover, refre
       {lab&&mobile&&<div className="cal-mobile-sort"><label>Sort by<Dropdown aria-label="Sort compounds" value={librarySort.key==='curve'?'compound':librarySort.key} options={libraryColumns.filter(([key])=>key!=='curve').map(([value,label])=>({value,label}))} onChange={key=>setLibrarySort(old=>({...old,key}))} menuPortal/></label><button className="icon-button" aria-label={librarySort.direction==='ascending'?'Sort descending':'Sort ascending'} title="Reverse sort order" onClick={()=>setLibrarySort(old=>({...old,direction:old.direction==='ascending'?'descending':'ascending'}))}><ChevronIndicator direction={librarySort.direction==='ascending'?'up':'down'}/></button></div>}
       {loading?<p role="status">Loading library...</p>:lab&&filter==='all'?<LibrarySourceGroups entries={sortedEntries} projects={projects} query={query} disabled={busy} onCreate={group=>{accept({...emptyDraft(),name:group.label,project_id:'cal-test',profile:{...group.files[0]?.profile,response:'TIC'},discovery:{series:group.label,files:group.files,preparations:[],review_state:'pending'}});setError('')}} renderDetails={entry=><div className="cal-mobile-details">
         <div className="cal-source-preview"><CompoundInfo name={entry.compound} theme={theme}/><CurveThumbnail id={entry.id} load={loadLibraryVersion} theme={theme} refreshToken={`${refreshToken}:${entry.updated_at}`} onFit={setCurveFits}/></div>
-        <p className="cal-subtle">{[entry.profile.instrument,entry.profile.method,entry.profile.column_model].filter(Boolean).join(' · ')}</p>
+        <p className="cal-subtle"><InstrumentMeta profile={entry.profile}/>{[entry.profile.method,entry.profile.column_model].filter(Boolean).map(value=><small key={value}>{value}</small>)}</p>
         <div className="cal-mobile-actions"><button className="ghost-button" disabled={busy} onClick={()=>open(entry.id)}><ExternalLink size={16}/>Open calibration</button><CopyCalibration name={entry.compound||entry.name} getText={async()=>calibrationClipboardRow(await loadLibraryVersion(entry.id))}/><ExcelCalibration name={entry.compound||entry.name} getData={()=>loadLibraryVersion(entry.id)}/><CopyCalibrationLink id={entry.id} name={entry.compound||entry.name}/><OpenInAtmos id={entry.id} version={entry.latest_version||'draft'} theme={theme}/></div>
       </div>}/>:lab&&mobile?<div className="cal-mobile-library" aria-label="Calibration library">
         {!sortedEntries.length&&<p>No matching compounds.</p>}
@@ -321,7 +325,7 @@ export default function CalibrationLibrary({ theme, lab=false, onDiscover, refre
             <div id={`mobile-curve-${entry.id}`} hidden={!isOpen}>{isOpen&&<div className="cal-mobile-details">
               {entry.compound&&<CompoundInfo name={entry.compound} theme={theme}/>}
               <CurveThumbnail id={entry.id} load={loadDraft} theme={theme} refreshToken={`${refreshToken}:${entry.updated_at}`} onFit={setCurveFits}/>
-              <dl><dt>Author</dt><dd>{entry.author||'Unknown'}</dd><dt>Acquired</dt><dd>{entry.sequence?.start?.replace('T',' ')||'-'}</dd><dt>Instrument</dt><dd>{entry.profile.instrument||'-'}</dd><dt>Method</dt><dd>{entry.profile.method||'-'}</dd><dt>Column</dt><dd>{[entry.profile.column_model,entry.profile.column_phase].filter(Boolean).join(' / ')||'-'}</dd><dt>Calibration</dt><dd>{entry.mode==='internal'?'Internal standard':'External'} · {entry.unit}</dd></dl>
+              <dl><dt>Author</dt><dd>{entry.author||'Unknown'}</dd><dt>Acquired</dt><dd>{entry.sequence?.start?.replace('T',' ')||'-'}</dd><dt>Instrument</dt><dd><InstrumentMeta profile={entry.profile}/></dd><dt>Method</dt><dd>{entry.profile.method||'-'}</dd><dt>Column</dt><dd>{[entry.profile.column_model,entry.profile.column_phase].filter(Boolean).join(' / ')||'-'}</dd><dt>Calibration</dt><dd>{entry.mode==='internal'?'Internal standard':'External'} · {entry.unit}</dd></dl>
               <div className="cal-mobile-actions"><button className="ghost-button" disabled={busy} onClick={()=>open(entry.id)}><ExternalLink size={16}/>Open calibration</button><CopyCalibration name={name} getText={async()=>calibrationClipboardRow(await loadDraft(entry.id))}/><ExcelCalibration name={name} getData={()=>loadDraft(entry.id)}/><CopyCalibrationLink id={entry.id} name={name}/><OpenInAtmos id={entry.id} theme={theme}/>{deleteButton(entry)}</div>
             </div>}</div>
           </section>
@@ -333,7 +337,7 @@ export default function CalibrationLibrary({ theme, lab=false, onDiscover, refre
             <td><strong>{curveLabels[entry.id]||'Loading curve...'}</strong></td>
             <td>{entry.series||projects.find(p=>p.id===entry.project_id)?.name||'-'}</td>
             <td>{entry.sequence?.start?.replace('T',' ')||'-'}</td>
-            <td>{entry.profile.instrument||'-'}<small>{entry.profile.method||'-'}</small></td>
+            <td><InstrumentMeta profile={entry.profile}/><small>{entry.profile.method||'-'}</small></td>
             <td>{entry.profile.column_model||'-'}<small>{entry.profile.column_phase}</small></td>
             <td>{entry.mode==='internal'?'Internal standard':'External'}<small>{entry.unit}</small></td>
             <td>{entry.author||'Unknown'}</td>
@@ -342,7 +346,7 @@ export default function CalibrationLibrary({ theme, lab=false, onDiscover, refre
           </tr><tr className="cal-compound-body"><td>{entry.compound&&<CompoundInfo name={entry.compound} theme={theme} part="structure"/>}</td><td><CurveThumbnail id={entry.id} load={loadLibraryVersion} theme={theme} refreshToken={`${refreshToken}:${entry.updated_at}:${selectedVersions[entry.id]||'latest'}`} onFit={setCurveFits} onLabel={setCurveLabels} onData={setCurveData} highlightedPoint={highlightedPoints[entry.id]??null} onHighlight={index=>setHighlightedPoints(old=>({...old,[entry.id]:index}))} hideCaption/></td><td colSpan={8}><div className="cal-preview-details">{entry.compound&&<CompoundInfo name={entry.compound} theme={theme} part="details"/>}<CurveDataBlocks data={curveData[entry.id]} highlightedPoint={highlightedPoints[entry.id]??null} onHighlight={index=>setHighlightedPoints(old=>({...old,[entry.id]:index}))}/></div></td></tr></Fragment>)}
         </tbody></table>:<table className="cal-library-table"><thead><tr><th>Calibration / compound</th><th>Instrument / method</th><th>Column</th><th>Calibration</th><th>Status</th></tr></thead><tbody>
           {displayEntries.map(entry=>entry.group?<tr key={entry.key}><td colSpan={5}><button className="cal-text-link cal-series-heading" aria-expanded={!!seriesExpanded[entry.key]||!!query} onClick={()=>setSeriesExpanded(old=>({...old,[entry.key]:!old[entry.key]}))}><ChevronIndicator direction={seriesExpanded[entry.key]||query?'down':'right'}/>{entry.label}</button></td></tr>:entry.otherGroup?<tr key={`${entry.key}:other`}><td colSpan={5}><button className="cal-text-link" aria-expanded={!!otherExpanded[entry.key]} onClick={()=>setOtherExpanded(old=>({...old,[entry.key]:!old[entry.key]}))}><ChevronIndicator direction={otherExpanded[entry.key]?'down':'right'}/>Other detections ({entry.count})</button></td></tr>:<Fragment key={entry.id}><tr><td><button className="cal-expand" aria-label={`Show chart data for ${entry.name}`} aria-expanded={!!expanded[entry.id]} onClick={()=>togglePreview(entry.id)}><ChevronIndicator direction={expanded[entry.id]?'down':'right'}/></button><button className="cal-text-link" disabled={busy} onClick={()=>open(entry.id)}>{entry.name}</button><small>{entry.compound || 'Unassigned compound'}{entry.qualification&&!entry.qualification.qualified?` · ${entry.qualification.reason}`:''}</small></td>
-            <td>{entry.profile.instrument || '-'}<small>{entry.profile.method || '-'}</small></td><td>{entry.profile.column_model || '-'}<small>{entry.profile.column_phase}</small></td>
+            <td><InstrumentMeta profile={entry.profile}/><small>{entry.profile.method || '-'}</small></td><td>{entry.profile.column_model || '-'}<small>{entry.profile.column_phase}</small></td>
             <td>{entry.mode==='internal'?'Internal standard':'External'}<small>{entry.unit}</small>{lab&&<CurveThumbnail id={entry.id} load={loadDraft} theme={theme} refreshToken={`${refreshToken}:${entry.updated_at}`}/>}</td><td><span className={entry.published_count?'cal-published':'cal-draft'}>{entry.published_count?`${entry.published_count} published`:'Draft'}</span></td></tr>
             {expanded[entry.id]&&<tr><td colSpan={5}><div>
               {!previews[entry.id]?<p role="status">Loading chart data...</p>:previews[entry.id].previewError?<p role="alert">{previews[entry.id].previewError}</p>:<>

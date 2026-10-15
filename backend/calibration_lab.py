@@ -170,13 +170,19 @@ def scan_source():
         id = 'run-' + digest.hexdigest()[:24]
         if fingerprint is not None:
             fingerprint.update(id.encode())
-        if get('run', id) is None:
-            method = folder / 'acqmeth.txt'
+        method = folder / 'acqmeth.txt'
+        acquired_profile = acquisition_profile(method) if method.is_file() else {}
+        existing = get('run', id)
+        if existing is None:
             path = str(folder) if selected else str(folder.relative_to(SOURCE))
             put('run', id, {'id': id, 'filename': folder.name, 'path': path,
-                           'profile': {**(acquisition_profile(method) if method.is_file() else {}),
+                           'profile': {**acquired_profile,
                                        'response': 'TIC', 'area_multiplier': '10', 'integration': 'endpoints'},
                            'source': 'acqmeth.txt', **acquisition_timing(folder)})
+        elif acquired_profile:
+            refreshed_profile = {**existing.get('profile', {}), **acquired_profile}
+            if refreshed_profile != existing.get('profile', {}):
+                put('run', id, {**existing, 'profile': refreshed_profile})
         ids.append(id)
     result = {'fingerprint': fingerprint.hexdigest() if fingerprint is not None else info['fingerprint'],
               'ids': ids, 'synced_at': synced_at, 'error': '', 'folder': str(root)}

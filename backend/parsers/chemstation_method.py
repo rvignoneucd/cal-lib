@@ -77,6 +77,7 @@ class MethodPlan:
     method_path: str = ""
     instrument_model: str = ""
     instrument_serial: str = ""
+    instrument_label: str = ""
     source_file: str = ""
 
 
@@ -160,6 +161,9 @@ def parse_acqmeth(text: str) -> MethodPlan:
         serial = re.search(r'TUNE PARAMETERS for SN:\s*(\S+)', stripped, re.IGNORECASE)
         if serial and not plan.instrument_serial:
             plan.instrument_serial = serial.group(1)
+        label = re.match(r'^INSTRUMENT CONTROL PARAMETERS\s*:\s*(.+)$', stripped, re.IGNORECASE)
+        if label and not plan.instrument_label:
+            plan.instrument_label = label.group(1).strip()
 
         # Section markers
         if upper == "OVEN":

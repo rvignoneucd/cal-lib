@@ -17,7 +17,7 @@ from .area_review import auto_area_needs_review
 from .gcms_calibration import fit_points, peak_identity
 from .calibration_columns import COLUMN_FIELDS, register_columns
 
-PROFILE_FIELDS = ('instrument', 'method', 'column_model', 'column_phase',
+PROFILE_FIELDS = ('instrument', 'instrument_label', 'method', 'column_model', 'column_phase',
                   'column_length_m', 'column_id_um', 'column_film_um',
                   'acquisition_mode', 'response', 'area_multiplier', 'integration', 'method_signature')
 NUMERIC_PROFILE = ('column_length_m', 'column_id_um', 'column_film_um', 'area_multiplier')
@@ -49,7 +49,8 @@ def clean_profile(raw, required=False):
         raise ValueError('Invalid acquisition profile')
     profile = {key: str(raw.get(key) or '').strip()[:240] for key in PROFILE_FIELDS}
     if required:
-        missing = [key.replace('_', ' ') for key, value in profile.items() if not value and key != 'method_signature']
+        missing = [key.replace('_', ' ') for key, value in profile.items()
+                   if not value and key not in ('method_signature', 'instrument_label')]
         if missing:
             raise ValueError('Confirm acquisition details: ' + ', '.join(missing))
     for key in NUMERIC_PROFILE:

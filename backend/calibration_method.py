@@ -7,6 +7,15 @@ from pathlib import Path
 
 from .parsers.chemstation_method import parse_acqmeth_file, plan_to_dict
 
+INSTRUMENT_LABELS = {
+    'gcms': 'Teaching Lab GC-MS',
+}
+
+
+def display_instrument_label(value):
+    raw = ' '.join(str(value or '').split())
+    return INSTRUMENT_LABELS.get(raw.casefold(), raw)
+
 
 def acquisition_profile(path):
     method = plan_to_dict(parse_acqmeth_file(path))
@@ -16,6 +25,9 @@ def acquisition_profile(path):
     instrument = ' '.join(method[key] for key in ('instrument_model', 'instrument_serial') if method.get(key))
     if instrument:
         profile['instrument'] = instrument
+    label = display_instrument_label(method.get('instrument_label'))
+    if label:
+        profile['instrument_label'] = label
     for target, key in {'column_model': 'column_model', 'column_phase': 'column_phase',
                         'column_length_m': 'column_length_m', 'column_id_um': 'column_id_um',
                         'column_film_um': 'column_film_thickness_um', 'acquisition_mode': 'acq_mode'}.items():
