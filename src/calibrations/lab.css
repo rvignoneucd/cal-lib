@@ -98,11 +98,17 @@
   border-collapse:collapse;
   border-spacing:0;
 }
-.cal-site .cal-compound-library thead th {
+.cal-site .cal-compound-library > thead > tr > th {
   position:sticky;
   top:calc(var(--cal-masthead-height,78px) + var(--cal-toolbar-height,34px));
   z-index:80;
   box-shadow:0 1px 0 var(--control-border);
+}
+.cal-site .cal-compound-library tbody .cal-preview-blocks thead th {
+  position:static;
+  top:auto;
+  z-index:auto;
+  box-shadow:none;
 }
 .lab-tools { display:flex; flex-wrap:wrap; align-items:center; gap:12px 24px; padding:12px 28px; border-bottom:1px solid var(--control-border); }
 .lab-tools:not(:has(table,dialog[open])) { padding:0; border:0; }
