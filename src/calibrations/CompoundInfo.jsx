@@ -17,9 +17,12 @@ function PeakTracePreview({peak,peaks=[],theme,stacked=false}) {
     let cancelled=false
     setTraces([]);setError('')
     if(!selectedPeaks.length){setError('Selected peak unavailable');return()=>{cancelled=true}}
-    Promise.all(selectedPeaks.map(item=>loadChromatogram(item.dataset_id))).then(values=>{
-      if(!cancelled)setTraces(values.map((value,index)=>({peak:selectedPeaks[index],points:value.points||[]})))
-    }).catch(reason=>{if(!cancelled)setError(reason.message||'Chromatogram unavailable')})
+    Promise.allSettled(selectedPeaks.map(item=>loadChromatogram(item.dataset_id))).then(results=>{
+      const loaded=results.map((result,index)=>result.status==='fulfilled'?{peak:selectedPeaks[index],points:result.value.points||[]}:null).filter(Boolean)
+      if(cancelled)return
+      if(loaded.length)setTraces(loaded)
+      else setError('Selected peak trace unavailable')
+    })
     return()=>{cancelled=true}
   },[datasetKey])
   const boxClass='cal-peak-preview'
