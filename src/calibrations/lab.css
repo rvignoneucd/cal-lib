@@ -89,6 +89,7 @@
 .cal-site .cal-lab-main > .cal-table-wrap[aria-label='Calibration library'] {
   margin-inline:-28px;
   width:calc(100% + 56px);
+  max-width:none;
   overflow:visible;
 }
 .cal-site .cal-compound-library {
