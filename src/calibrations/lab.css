@@ -106,7 +106,14 @@
 }
 .lab-tools { display:flex; flex-wrap:wrap; align-items:center; gap:12px 24px; padding:12px 28px; border-bottom:1px solid var(--control-border); }
 .lab-tools:not(:has(table,dialog[open])) { padding:0; border:0; }
-.cal-site .cal-masthead { flex-wrap:wrap; }
+.cal-site .cal-masthead {
+  flex-wrap:wrap;
+  position:sticky;
+  top:0;
+  z-index:100;
+  background:var(--control-surface,#fff);
+  box-shadow:0 1px 0 var(--control-border);
+}
 .cal-site .cal-masthead nav { flex-wrap:wrap; max-width:100%; }
 .cal-site .cal-masthead nav > .dropdown { flex:0 0 110px; width:110px; min-width:0; }
 .cal-site .cal-masthead nav > .atmos-sliding-pill { flex:none; width:280px; max-width:100%; }
