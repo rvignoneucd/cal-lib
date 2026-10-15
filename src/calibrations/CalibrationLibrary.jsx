@@ -45,7 +45,7 @@ function CurvePlot({ fit, mode, unit, theme, normalized=false, compact=false, hi
   const ratio = mode === 'internal'
   return <><div className="cal-plot" aria-label="Calibration fit chart">
     <Plot useDisplayPreferences={false} data={[
-      {type:'scatter',mode:'markers',name:'Standards',x:fit.points.map(p=>p.concentration),y:fit.points.map(p=>p.area),text:fit.points.map(p=>`${p.filename||''}${p.unconfirmed_manual?' | Unconfirmed manual area':''}`),marker:{color:fit.points.map(p=>p.unconfirmed_manual?(dark?'#7eacff':'#4472c4'):(dark?'#7eacff':'#4472c4')),symbol:fit.points.map(p=>p.unconfirmed_manual?'diamond-open':'circle'),size:fit.points.map((_,i)=>i===highlightedPoint?14:10)}}, 
+      {type:'scatter',mode:'markers',name:'Standards',x:fit.points.map(p=>p.concentration),y:fit.points.map(p=>p.area),customdata:fit.points.map(p=>[p.concentration]),hovertemplate:'(%{customdata[0]}, %{y:.2e})<extra></extra>',marker:{color:fit.points.map(p=>p.unconfirmed_manual?(dark?'#7eacff':'#4472c4'):(dark?'#7eacff':'#4472c4')),symbol:fit.points.map(p=>p.unconfirmed_manual?'diamond-open':'circle'),size:fit.points.map((_,i)=>i===highlightedPoint?14:10)}}, 
       {type:'scatter',mode:'lines',name:'Fit',x:[fit.min,fit.max],y:[fit.min*fit.slope+fit.intercept,fit.max*fit.slope+fit.intercept],line:{color:dark?'#7eacff':'#4472c4',width:2,dash:'dot'}},
     ]} layout={{autosize:true,margin:compact?{l:58,r:10,t:12,b:50}:{l:72,r:22,t:18,b:70},paper_bgcolor:'transparent',plot_bgcolor:'transparent',
       font:{color:dark?'#eceeed':'#242a29',size:12},showlegend:false,dragmode:compact?false:'zoom',
