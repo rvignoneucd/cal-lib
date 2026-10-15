@@ -65,7 +65,7 @@
 .cal-curve-thumbnail figcaption { order:-1; min-height:40px; box-sizing:border-box; font-size:14px; font-weight:600; padding:4px 0 12px; color:var(--control-text); }
 .cal-compound-library tbody tr:nth-child(odd) { background:#f2f5fa; }
 :root[data-theme='dark'] .cal-compound-library tbody tr:nth-child(odd) { background:#292e38; }
-.cal-compound-library { width:100%; max-width:3000px; table-layout:fixed; }
+.cal-compound-library { width:100%; max-width:3000px; }
 .cal-site .cal-compound-library tbody .cal-compound-header { background:#dce8e8; }
 .cal-site .cal-compound-library tbody .cal-compound-body { background:#fbfcfb; }
 :root[data-theme='dark'] .cal-site .cal-compound-library tbody .cal-compound-header { background:#1b3235; }
