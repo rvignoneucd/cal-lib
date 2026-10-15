@@ -100,7 +100,7 @@
 }
 .cal-site .cal-compound-library thead th {
   position:sticky;
-  top:calc(var(--cal-masthead-height,78px) + var(--cal-toolbar-height,34px) + 18px);
+  top:calc(var(--cal-masthead-height,78px) + var(--cal-toolbar-height,34px));
   z-index:80;
   box-shadow:0 1px 0 var(--control-border);
 }
@@ -125,8 +125,10 @@
   position:sticky;
   top:var(--cal-masthead-height,78px);
   z-index:90;
+  margin-bottom:0;
   background:var(--control-surface,#fff);
-  box-shadow:0 1px 0 var(--control-border);
+  border-bottom:1px solid var(--control-border);
+  box-shadow:0 8px 12px -12px rgba(20,35,48,.35);
 }
 .cal-repositories { min-width:180px; max-width:100%; }
 .cal-repository-row { display:grid; grid-template-columns:minmax(100px,1fr) minmax(180px,2fr) 36px; gap:12px; align-items:end; padding:12px 0; }
