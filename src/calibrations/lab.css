@@ -131,6 +131,9 @@
   position:sticky;
   top:var(--cal-masthead-height,78px);
   z-index:90;
+  margin-inline:-28px;
+  padding-inline:28px;
+  box-sizing:border-box;
   margin-bottom:0;
   background:var(--control-surface,#fff);
   border-bottom:1px solid var(--control-border);
@@ -195,6 +198,10 @@
 @media (max-width: 600px) { .lab-intake { margin: 0 16px; } .cal-masthead nav { flex-wrap: wrap; } }
 
 @media (max-width: 1100px) {
+  .cal-site .cal-lab-main > .cal-toolbar {
+    margin-inline:-16px;
+    padding-inline:16px;
+  }
   .cal-site .cal-lab-main > .cal-table-wrap[aria-label='Calibration library'] {
     margin-inline:-16px;
     width:calc(100% + 32px);
