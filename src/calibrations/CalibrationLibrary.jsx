@@ -117,6 +117,20 @@ export default function CalibrationLibrary({ theme, lab=false, onDiscover, refre
     media.addEventListener('change',update)
     return()=>media.removeEventListener('change',update)
   },[])
+  useEffect(()=>{
+    if(!lab)return
+    const site=document.querySelector('.cal-site')
+    const masthead=site?.querySelector('.cal-masthead')
+    const toolbar=site?.querySelector('.cal-lab-main > .cal-toolbar')
+    if(!site||!masthead||!toolbar)return
+    const sync=()=>{
+      site.style.setProperty('--cal-masthead-height',`${masthead.getBoundingClientRect().height}px`)
+      site.style.setProperty('--cal-toolbar-height',`${toolbar.getBoundingClientRect().height}px`)
+    }
+    const observer=new ResizeObserver(sync)
+    observer.observe(masthead);observer.observe(toolbar);sync()
+    return()=>{observer.disconnect();site.style.removeProperty('--cal-masthead-height');site.style.removeProperty('--cal-toolbar-height')}
+  },[lab])
   const [entries,setEntries] = useState([]), [projects,setProjects] = useState([]), [query,setQuery] = useState('')
   const [draft,setDraft] = useState(null), [files,setFiles] = useState([]), [view,setView] = useState('draft')
   const savedBaseline=useRef(null),actionRunning=useRef(false)

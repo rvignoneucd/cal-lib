@@ -100,8 +100,8 @@
 }
 .cal-site .cal-compound-library thead th {
   position:sticky;
-  top:0;
-  z-index:30;
+  top:calc(var(--cal-masthead-height,78px) + var(--cal-toolbar-height,34px) + 18px);
+  z-index:80;
   box-shadow:0 1px 0 var(--control-border);
 }
 .lab-tools { display:flex; flex-wrap:wrap; align-items:center; gap:12px 24px; padding:12px 28px; border-bottom:1px solid var(--control-border); }
@@ -121,6 +121,13 @@
 .cal-site .cal-masthead nav > .icon-button { flex:none; }
 .lab-tools .manual-library { margin:0; }
 .lab-tools .manual-library:not(:has(button,table,[role='alert'])) { display:none; }
+.cal-site .cal-lab-main > .cal-toolbar {
+  position:sticky;
+  top:var(--cal-masthead-height,78px);
+  z-index:90;
+  background:var(--control-surface,#fff);
+  box-shadow:0 1px 0 var(--control-border);
+}
 .cal-repositories { min-width:180px; max-width:100%; }
 .cal-repository-row { display:grid; grid-template-columns:minmax(100px,1fr) minmax(180px,2fr) 36px; gap:12px; align-items:end; padding:12px 0; }
 @media(max-width:700px) { .cal-repository-row { grid-template-columns:minmax(0,1fr) 36px; }.cal-repository-row > label:first-child { grid-column:1/-1; } }
