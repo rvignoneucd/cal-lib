@@ -103,6 +103,10 @@
 .cal-repository-row label { display:flex; flex-direction:column; gap:6px; font-size:13px; min-width:0; }
 .cal-repository-row input { width:100%; min-width:0; box-sizing:border-box; }
 .cal-repository-row > .icon-button { margin-bottom:2px; }
+.cal-repository-option { display:flex; align-items:flex-start; gap:10px; margin:14px 0 2px; padding:12px; border:1px solid var(--control-border); border-radius:8px; background:color-mix(in srgb,var(--control-focus) 7%,transparent); }
+.cal-repository-option input { width:auto; flex:none; margin-top:2px; }
+.cal-repository-option span { display:grid; gap:3px; font-size:13px; }
+.cal-repository-option small { color:var(--atmos-ui-muted); font-size:12px; line-height:1.35; }
 .cal-location-browser { margin:18px 0; border:1px solid var(--control-border); border-radius:10px; padding:14px; background:var(--control-surface); }
 .cal-location-browser > header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
 .cal-location-browser header strong,.cal-location-browser header small { display:block; overflow-wrap:anywhere; }

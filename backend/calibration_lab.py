@@ -120,6 +120,10 @@ def source_folders(root):
     return found
 
 
+def is_blank_path(path):
+    return any('blank' in part.casefold() for part in Path(path).parts)
+
+
 def actor(request: Request):
     return {'id': request.headers.get('tailscale-user-login') or 'lab-worker',
             'name': request.headers.get('tailscale-user-name') or 'Lab'}
@@ -153,9 +157,13 @@ def annotations(user, id):
 
 
 def metadata(project, user=None):
+    current_ids=set(get('state', 'source', {}).get('ids', []))
+    records=all_records('run')
+    if current_ids:
+        records=[r for r in records if r.get('id') in current_ids]
     return {'datasets': [{'id': r['id'], 'source_name': r['filename'], 'instrument_type': 'GCMS',
                           'source_folder': r.get('source_folder', ''),
-                          'source_path': r.get('source_path', '')} for r in all_records('run')]}
+                          'source_path': r.get('source_path', '')} for r in records]}
 
 
 def method_metadata(id, user):
@@ -187,6 +195,8 @@ def scan_source():
     ids = []
     for folder in source_folders(root):
         relative_path = folder.relative_to(root).as_posix()
+        if selected and selected.get('hide_blanks', True) and is_blank_path(relative_path):
+            continue
         source_folder = '' if folder.parent == root else folder.parent.relative_to(root).as_posix()
         digest = hashlib.sha256(relative_path.encode())
         for file in sorted(p for p in folder.rglob('*') if p.is_file()):
@@ -216,7 +226,8 @@ def scan_source():
                 put('run', id, refreshed)
         ids.append(id)
     result = {'fingerprint': fingerprint.hexdigest() if fingerprint is not None else info['fingerprint'],
-              'ids': ids, 'synced_at': synced_at, 'error': '', 'folder': str(root)}
+              'ids': ids, 'synced_at': synced_at, 'error': '', 'folder': str(root),
+              'hide_blanks': selected.get('hide_blanks', True) if selected else True}
     put('state', 'source', result)
     return result
 
@@ -294,12 +305,18 @@ def start_job():
     return job
 
 
-def monitor_folder(root):
+def monitor_folder(root, hide_blanks=True):
     digest = hashlib.sha256()
     count = 0
     latest = 0
     for base, directories, files in os.walk(root):
-        directories[:] = sorted(directory for directory in directories if not directory.startswith('$'))
+        relative_base=Path(base).relative_to(root)
+        if hide_blanks and is_blank_path(relative_base):
+            directories[:]=[]
+            continue
+        directories[:] = sorted(directory for directory in directories
+                                if not directory.startswith('$') and
+                                not (hide_blanks and is_blank_path(relative_base / directory)))
         for name in sorted(files):
             path = Path(base) / name
             try:
@@ -324,7 +341,7 @@ def monitor_sources():
     for instrument, record in list(roots.items()):
         try:
             root = repository_path(record.get('path'))
-            snapshot = monitor_folder(root)
+            snapshot = monitor_folder(root, record.get('hide_blanks', True))
             previous = record.get('fingerprint', '')
             roots[instrument] = {**record, **snapshot, 'last_checked_at': stamp(),
                                  'last_changed_at': stamp() if snapshot['fingerprint'] != previous else record.get('last_changed_at', '')}
@@ -1017,7 +1034,8 @@ def source_selection(instrument: str = 'GC-MS'):
     if instrument not in SUPPORTED_INSTRUMENTS:
         raise HTTPException(400, 'Unknown instrument')
     roots = get('state', 'source_roots', {})
-    return roots.get(instrument, {'instrument': instrument, 'path': '', 'name': ''})
+    result=roots.get(instrument, {'instrument': instrument, 'path': '', 'name': ''})
+    return {**result, 'hide_blanks': result.get('hide_blanks', True) if instrument == 'GC-MS' else False}
 
 
 @app.put('/api/lab/source-selection')
@@ -1028,8 +1046,11 @@ def save_source_selection(instrument: str, payload: dict = Body(...)):
     if not path.is_dir():
         raise HTTPException(400, 'Choose an existing folder')
     roots = get('state', 'source_roots', {})
+    hide_blanks=payload.get('hide_blanks', True) if instrument == 'GC-MS' else False
+    if type(hide_blanks) is not bool:
+        raise HTTPException(400, 'Hide blanks must be true or false')
     result = {'instrument': instrument, 'path': str(path), 'name': path.name or str(path),
-              'updated_at': stamp(), 'error': ''}
+              'hide_blanks': hide_blanks, 'updated_at': stamp(), 'error': ''}
     roots[instrument] = result
     put('state', 'source_roots', roots)
     if instrument == 'GC-MS':
