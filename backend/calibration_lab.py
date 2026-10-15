@@ -94,6 +94,32 @@ def repository_path(value=''):
     return candidate
 
 
+def source_folders(root):
+    """Return ChemStation data folders while preserving real folder nesting.
+
+    A .D directory is one dataset, so do not descend into it. This allows a
+    selected root to contain folders such as 3mg/ and 10mg/ without treating
+    nested files inside a .D dataset as separate runs.
+    """
+    found = []
+
+    def walk(current):
+        try:
+            entries = sorted(current.iterdir(), key=lambda item: item.name.casefold())
+        except OSError:
+            return
+        for entry in entries:
+            if not entry.is_dir() or entry.name.startswith('$'):
+                continue
+            if entry.suffix.lower() == '.d':
+                found.append(entry)
+            else:
+                walk(entry)
+
+    walk(root)
+    return found
+
+
 def actor(request: Request):
     return {'id': request.headers.get('tailscale-user-login') or 'lab-worker',
             'name': request.headers.get('tailscale-user-name') or 'Lab'}
@@ -127,7 +153,9 @@ def annotations(user, id):
 
 
 def metadata(project, user=None):
-    return {'datasets': [{'id': r['id'], 'source_name': r['filename'], 'instrument_type': 'GCMS'} for r in all_records('run')]}
+    return {'datasets': [{'id': r['id'], 'source_name': r['filename'], 'instrument_type': 'GCMS',
+                          'source_folder': r.get('source_folder', ''),
+                          'source_path': r.get('source_path', '')} for r in all_records('run')]}
 
 
 def method_metadata(id, user):
@@ -157,10 +185,10 @@ def scan_source():
     else:
         return {'fingerprint': '', 'ids': [], 'synced_at': '', 'error': 'Choose a source folder or wait for source-folder sync'}
     ids = []
-    for folder in sorted(root.iterdir()):
-        if not folder.is_dir() or folder.suffix.lower() != '.d':
-            continue
-        digest = hashlib.sha256(folder.name.encode())
+    for folder in source_folders(root):
+        relative_path = folder.relative_to(root).as_posix()
+        source_folder = '' if folder.parent == root else folder.parent.relative_to(root).as_posix()
+        digest = hashlib.sha256(relative_path.encode())
         for file in sorted(p for p in folder.rglob('*') if p.is_file()):
             if not file.resolve().is_relative_to(root):
                 raise ValueError('Source symlinks are not supported')
@@ -173,16 +201,19 @@ def scan_source():
         method = folder / 'acqmeth.txt'
         acquired_profile = acquisition_profile(method) if method.is_file() else {}
         existing = get('run', id)
+        path = str(folder) if selected else str(folder.relative_to(SOURCE))
+        run_metadata = {'id': id, 'filename': folder.name, 'path': path,
+                        'source_folder': source_folder, 'source_path': relative_path,
+                        'profile': {**acquired_profile,
+                                    'response': 'TIC', 'area_multiplier': '10', 'integration': 'endpoints'},
+                        'source': 'acqmeth.txt', **acquisition_timing(folder)}
         if existing is None:
-            path = str(folder) if selected else str(folder.relative_to(SOURCE))
-            put('run', id, {'id': id, 'filename': folder.name, 'path': path,
-                           'profile': {**acquired_profile,
-                                       'response': 'TIC', 'area_multiplier': '10', 'integration': 'endpoints'},
-                           'source': 'acqmeth.txt', **acquisition_timing(folder)})
-        elif acquired_profile:
-            refreshed_profile = {**existing.get('profile', {}), **acquired_profile}
-            if refreshed_profile != existing.get('profile', {}):
-                put('run', id, {**existing, 'profile': refreshed_profile})
+            put('run', id, run_metadata)
+        else:
+            refreshed = {**existing, **run_metadata,
+                         'profile': {**existing.get('profile', {}), **acquired_profile}}
+            if refreshed != existing:
+                put('run', id, refreshed)
         ids.append(id)
     result = {'fingerprint': fingerprint.hexdigest() if fingerprint is not None else info['fingerprint'],
               'ids': ids, 'synced_at': synced_at, 'error': '', 'folder': str(root)}

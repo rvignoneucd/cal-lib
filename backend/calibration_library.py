@@ -307,6 +307,8 @@ def register_calibration_library(app, *, current_user, authorize, metadata, anno
             acquired = method_metadata(dataset['id'], user) if method_metadata else {'profile': {}}
             profile = {'instrument': dataset.get('instrument_name') or '', 'method': dataset.get('method') or '', **acquired.get('profile', {})}
             result.append({'id': dataset['id'], 'filename': dataset.get('source_name') or dataset.get('name') or dataset['id'],
+                           'source_folder': dataset.get('source_folder', ''),
+                           'source_path': dataset.get('source_path', ''),
                            'profile': profile, 'metadata_source': acquired.get('source', 'dataset metadata'),
                            'acquired_at': acquired.get('acquired_at', ''), 'time_source': acquired.get('time_source', 'unavailable'),
                            **({'source_error': acquired.get('source_error', '')} if literal_search else {}),
@@ -381,10 +383,13 @@ def register_calibration_library(app, *, current_user, authorize, metadata, anno
             if literal_search:
                 if draft['project_id'] not in project_files:
                     project_files[draft['project_id']] = {
-                        item['id']: {'id': item['id'], 'filename': item.get('source_name') or item.get('name') or item['id']}
+                        item['id']: {'id': item['id'], 'filename': item.get('source_name') or item.get('name') or item['id'],
+                                     'source_folder': item.get('source_folder', ''), 'source_path': item.get('source_path', '')}
                         for item in metadata(project, user=user).get('datasets', [])}
                 names = project_files[draft['project_id']]
-                linked = {item['id']: {'id': item['id'], 'filename': item.get('filename') or names.get(item['id'], {}).get('filename', item['id'])}
+                linked = {item['id']: {'id': item['id'], 'filename': item.get('filename') or names.get(item['id'], {}).get('filename', item['id']),
+                                       'source_folder': names.get(item['id'], {}).get('source_folder', ''),
+                                       'source_path': names.get(item['id'], {}).get('source_path', '')}
                           for item in discovery.get('files', [])}
                 for row in draft.get('rows', []):
                     id = row.get('dataset_id')
