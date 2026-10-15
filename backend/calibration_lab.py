@@ -1228,6 +1228,11 @@ register_calibration_library(app, current_user=actor, authorize=authorize, metad
 if (WEB / 'assets').is_dir():
     app.mount('/assets', StaticFiles(directory=WEB / 'assets'), name='assets')
 
+if (WEB / 'cal-lib-logo.png').is_file():
+    @app.get('/cal-lib-logo.png')
+    def cal_lib_logo():
+        return FileResponse(WEB / 'cal-lib-logo.png', media_type='image/png')
+
 
 @app.get('/')
 @app.get('/calibrations/')

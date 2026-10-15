@@ -31,7 +31,6 @@ export default function RepositoryLocations({instrument}){
   async function save(e){e.preventDefault();setBusy(true);setError('');try{const next=await apiSend(`/lab/repositories?instrument=${encodeURIComponent(editor.instrument)}`,'PUT',editor);setData(next);setEditor(null)}catch(e){setError(e.message)}finally{setBusy(false)}}
   return <div className="cal-repositories">
     <Dropdown aria-label={`${instrument} repositories`} value="" placeholder={`Repositories (${data?.locations.length??0})`} disabled={!data} options={[...(data?.locations||[]).map((r,i)=>({value:String(i),label:r.name,hint:`${r.path} · Pending connection`})),{value:'manage',label:'Manage locations...'}]} onChange={value=>{if(value==='manage')open()}} menuPortal/>
-    <button type="button" className="ghost-button cal-manage-locations" disabled={!data} onClick={open}><FolderOpen size={16}/>Manage locations</button>
     {error&&!editor&&<ActionNotice error>{error}</ActionNotice>}
     {notice&&!editor&&<ActionNotice>{notice}</ActionNotice>}
     {source?.path&&<div className="cal-subtle" aria-live="polite">{instrument} watch root: {source.path} · {source.file_count??'Checking'} files{source.last_checked_at?` · checked ${new Date(source.last_checked_at).toLocaleString()}`:''}</div>}
