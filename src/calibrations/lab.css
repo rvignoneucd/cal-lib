@@ -165,6 +165,75 @@
 .cal-compound-library .cal-curve-thumbnail { width:512px; }
 .cal-compound-library .cal-curve-thumbnail-chart { width:512px; height:409px; padding:9px; box-sizing:border-box; border:0; border-radius:0; }
 .cal-compound-library .cal-curve-thumbnail-chart .cal-plot { width:100%; height:100%; }
+.cal-compact-metadata { display:none; }
+
+/* Metadata yields space continuously; plots and concentration data keep one row. */
+@media (min-width:701px) {
+  .cal-site .cal-compound-library {
+    display:block;
+    --cal-data-width:clamp(330px,25vw,440px);
+    --cal-meta-width:clamp(0px,calc((100vw - 1600px) / 6),150px);
+  }
+  .cal-site .cal-compound-library > tbody { display:block; }
+  .cal-site .cal-compound-library > thead {
+    display:block; position:sticky;
+    top:calc(var(--cal-masthead-height,78px) + var(--cal-toolbar-height,41px));
+    z-index:80; background:#dce3e6;
+  }
+  :root[data-theme='dark'] .cal-site .cal-compound-library > thead { background:#181d22; }
+  .cal-site .cal-compound-library > thead > tr,
+  .cal-site .cal-compound-library > tbody > .cal-compound-header {
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) repeat(6,minmax(0,var(--cal-meta-width))) calc(var(--cal-data-width) - 200px) 200px;
+  }
+  .cal-site .cal-compound-library > thead > tr > th { position:static; min-width:0; box-shadow:none; }
+  .cal-site .cal-compound-library > thead > tr > th:nth-child(n+3):nth-child(-n+8),
+  .cal-site .cal-compound-library > tbody > .cal-compound-header > td:nth-child(n+3):nth-child(-n+8) {
+    overflow:hidden; white-space:nowrap; overflow-wrap:normal;
+    padding-inline:clamp(0px,calc((100vw - 1600px) / 40),8px);
+    mask-image:linear-gradient(to right,#000 calc(100% - 10px),transparent);
+  }
+  .cal-site .cal-compound-library .cal-compound-header > td:nth-child(n+3):nth-child(-n+8) small { white-space:nowrap; }
+  .cal-site .cal-compound-library > tbody > tr > td { width:auto; min-width:0; max-width:none; }
+  .cal-site .cal-compound-library > tbody > .cal-compound-header > td { padding:10px 8px; align-content:center; }
+  .cal-site .cal-compound-library .cal-compound-header td .dropdown { min-width:0; width:100%; }
+  .cal-site .cal-compound-library .cal-row-actions { gap:4px; min-width:0; flex-wrap:wrap; }
+  .cal-site .cal-compound-library .cal-row-actions .icon-button,
+  .cal-site .cal-compound-library .cal-row-actions .cal-copy { width:32px; min-width:32px; height:32px; box-sizing:border-box; }
+  .cal-site .cal-compound-library > tbody > .cal-compound-body {
+    display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) calc(var(--cal-data-width) + 6 * var(--cal-meta-width));
+    height:409px;
+  }
+  .cal-site .cal-compound-library .cal-compound-body > td { padding:0 8px; }
+  .cal-site .cal-compound-library .cal-compound-info-structure,
+  .cal-site .cal-compound-library .cal-compound-info-structure img,
+  .cal-site .cal-compound-library .cal-peak-preview,
+  .cal-site .cal-compound-library .cal-curve-thumbnail,
+  .cal-site .cal-compound-library .cal-curve-thumbnail-chart { width:100%; min-width:0; max-width:100%; }
+  .cal-site .cal-compound-library .cal-preview-details {
+    display:flex; flex-direction:column; justify-content:flex-start;
+    gap:12px; overflow:hidden; container-type:normal; font-size:12px; align-items:flex-end;
+  }
+  .cal-site .cal-compound-library .cal-preview-blocks {
+    order:-1; flex:none; grid-template-columns:minmax(0,1fr);
+    gap:8px; width:calc(var(--cal-data-width) - 16px); max-width:100%;
+  }
+  .cal-site .cal-compound-library .cal-preview-blocks th { white-space:normal; }
+  .cal-site .cal-compound-library .cal-preview-blocks .cal-fit-stats { font-size:clamp(10px,.7vw,12px); gap:8px 4px; grid-template-columns:repeat(3,auto minmax(0,1fr)); }
+  .cal-site .cal-compound-library .cal-preview-blocks :is(td,dt,dd) { white-space:nowrap; overflow-wrap:normal; }
+  .cal-site .cal-compound-library .cal-preview-blocks .cal-table-wrap { scrollbar-gutter:auto; }
+  .cal-site .cal-compound-library .cal-compound-info-details { display:none; }
+  .cal-compact-metadata { display:block; position:relative; font-size:11px; margin-top:5px; }
+  .cal-compact-metadata summary { cursor:pointer; color:var(--atmos-ui-muted); }
+  .cal-compact-metadata dl {
+    position:absolute; top:100%; left:0; z-index:85;
+    width:320px; max-width:calc(100vw - 32px); box-sizing:border-box;
+    display:grid; grid-template-columns:80px minmax(0,1fr); gap:6px 10px;
+    padding:12px; margin:4px 0; background:var(--control-surface,#fff);
+    border:1px solid var(--control-border); border-radius:4px;
+  }
+  .cal-compact-metadata dd { margin:0; overflow-wrap:anywhere; }
+}
 .cal-compound-info-details dl { margin-top:0; }
 .cal-compound-info dl { display:grid; grid-template-columns:90px minmax(0,1fr); gap:4px 8px; }
 .cal-compound-info dd { margin:0; overflow-wrap:anywhere; }
@@ -199,6 +268,7 @@
 @media (max-width: 600px) { .lab-intake { margin: 0 16px; } .cal-masthead nav { flex-wrap: wrap; } }
 
 @media (max-width: 1100px) {
+  .cal-site .cal-lab-main { padding-inline:16px; }
   .cal-site .cal-lab-main > .cal-toolbar {
     margin-inline:-16px;
     padding-inline:16px;
