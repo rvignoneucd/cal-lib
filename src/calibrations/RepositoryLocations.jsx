@@ -9,7 +9,11 @@ export default function RepositoryLocations({instrument}){
   useEffect(()=>{let active=true;setData(null);setSource(null);setError('');Promise.all([apiGet(`/lab/repositories?instrument=${encodeURIComponent(instrument)}`),apiGet(`/lab/source-selection?instrument=${encodeURIComponent(instrument)}`)]).then(([locations,selection])=>{if(active){setData(locations);setSource(selection)}}).catch(e=>{if(active)setError(e.message)});return()=>{active=false}},[instrument])
   function newKey(){return `${instrument}-${Date.now()}-${Math.random().toString(36).slice(2)}`}
   function open(){if(data){setNotice('');setBrowser(null);setEditor({...data,instrument,locations:(data.locations.length?data.locations:[{name:'',path:''}]).map(r=>({...r,key:newKey()}))})}}
-  function relativePath(path){const root='/mnt/Nguyen Lab';return path?.startsWith(root)?path.slice(root.length).replace(/^\/+/,''):''}
+  function relativePath(path){
+    const root='/mnt/Nguyen Lab',value=String(path||'').trim()
+    if(!value||value===root)return ''
+    return value.startsWith(`${root}/`)?value.slice(root.length).replace(/^\/+/,''):value.replace(/^\/+/,'')
+  }
   async function browse(row, path=''){
     setError('');setBrowser({row,loading:true,data:null})
     try{const next=await apiGet(`/lab/repository-browse?path=${encodeURIComponent(relativePath(path))}`);setBrowser({row,loading:false,data:next})}
