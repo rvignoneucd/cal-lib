@@ -110,12 +110,12 @@
 @media(max-width:1000px) {
   .cal-site .cal-masthead { flex-wrap:wrap; }
   .cal-site .cal-masthead nav { width:100%; min-width:0; margin-left:0; justify-content:flex-start; overflow:visible; flex-wrap:wrap; gap:8px; }
-  .cal-site .cal-masthead nav > .atmos-sliding-pill { flex:1 1 100%; width:100%; min-width:0; order:0; }
+  .cal-site .cal-masthead nav > .atmos-sliding-pill { flex:0 1 auto; width:auto; max-width:100%; min-width:0; order:0; }
   .cal-site .cal-masthead nav > .cal-repositories { flex:1 1 280px; min-width:0; order:1; }
   .cal-site .cal-masthead nav > .icon-button { order:2; }
 }
-@media(max-width:460px) {
-  .cal-site .cal-masthead nav > .atmos-sliding-pill { flex-basis:100%; width:100%; }
+@media(max-width:560px) {
+  .cal-site .cal-masthead nav > .atmos-sliding-pill { flex:1 1 100%; width:100%; }
   .cal-site .cal-masthead nav > .atmos-sliding-pill > button { padding-inline:4px; font-size:12px; }
   .cal-site .cal-masthead nav > .cal-repositories { flex-basis:100%; }
   .cal-modal { padding:12px; }

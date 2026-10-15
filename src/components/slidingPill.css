@@ -25,6 +25,24 @@
   width: 36px; padding: 0;
 }
 .atmos-sliding-pill-icons > button > svg { width: 16px; height: 16px; }
+.atmos-sliding-pill:not(.atmos-sliding-pill-vertical) {
+  display: inline-flex;
+  grid-template-columns: none;
+  align-items: center;
+}
+.atmos-sliding-pill:not(.atmos-sliding-pill-vertical)::before { display: none; }
+:root .atmos-sliding-pill:not(.atmos-sliding-pill-vertical) > button {
+  display: inline-flex;
+  flex: 0 1 auto;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  text-align: center;
+  overflow: hidden;
+}
+:root .atmos-sliding-pill:not(.atmos-sliding-pill-vertical) > button:is([aria-checked='true'], [aria-selected='true']) {
+  background: var(--control-active);
+}
 .atmos-sliding-pill-vertical {
   width: 42px; max-width: none; flex-shrink: 0;
   grid-template-columns: 34px;
