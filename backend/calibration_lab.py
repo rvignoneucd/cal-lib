@@ -558,14 +558,32 @@ def lab_compound_info(name: str):
     cached = get('pubchem_info', name)
     if cached:
         return cached
-    raw = _rate_limited_get(f'{_PUBCHEM_BASE}/compound/name/{quote(name, safe="")}/cids/JSON')
-    if not raw:
+    # NIST/AMDIS exports sometimes prepend a sensory-library code to the
+    # chemical name (for example, "WS23 Methyl diisopropyl propionamide").
+    # PubChem knows the chemical name and the code separately, but not always
+    # the combined display label. Try the original first, then this narrowly
+    # defined WS23 alias cleanup.
+    queries = [name]
+    cleaned = re.sub(r'^\s*WS\s*[- ]?\s*23\s*[:\-–—]?\s+', '', name, flags=re.IGNORECASE)
+    if cleaned and cleaned.casefold() != name.casefold():
+        queries.append(cleaned)
+    raw = None
+    resolved_name = name
+    ids = set()
+    for query in queries:
+        raw = _rate_limited_get(f'{_PUBCHEM_BASE}/compound/name/{quote(query, safe="")}/cids/JSON')
+        if not raw:
+            continue
+        ids = set(json.loads(raw).get('IdentifierList', {}).get('CID', []))
+        if len(ids) == 1:
+            resolved_name = query
+            break
+    if not raw or not ids:
         return {'found': False, 'message': 'PubChem lookup unavailable. Try again later.'}
-    ids = set(json.loads(raw).get('IdentifierList', {}).get('CID', []))
     if len(ids) != 1:
         return {'found': False, 'message': 'No unique PubChem identity for this name.'}
     cid = ids.pop()
-    info = compound_summary(cid=cid, name=name)
+    info = compound_summary(cid=cid, name=resolved_name)
     try:
         svg = compound_structure(cid)
     except StructureUnavailable:
