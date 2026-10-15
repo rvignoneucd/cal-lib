@@ -23,6 +23,7 @@
 .pill-select .dropdown-trigger { min-height: var(--control-height); border: 1px solid var(--control-border); border-radius: var(--control-radius); background: var(--control-surface); color: var(--control-text); }
 .pill-select-validation { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 .dropdown-menu-portal .dropdown-option-label { white-space: normal; overflow-wrap: anywhere; }
+.dropdown-menu-portal .dropdown-option-hint { min-width: 0; max-width: 62%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 :root .dropdown-menu.dropdown-menu .dropdown-option:disabled { opacity: 0.5; cursor: not-allowed; }
 
 :root .dropdown-menu.dropdown-menu .dropdown-option {
