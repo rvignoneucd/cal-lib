@@ -1,15 +1,18 @@
 """Private lab adapter. Never register this app on the public Atmos server."""
 import asyncio
 import hashlib
+import io
 import json
 import math
 import os
 import re
 import sqlite3
 import subprocess
+import tempfile
 import threading
 import time
 import uuid
+import zipfile
 from contextlib import asynccontextmanager, contextmanager
 from functools import lru_cache
 from pathlib import Path
@@ -18,7 +21,7 @@ from urllib.parse import urlparse
 
 import numpy as np
 from fastapi import Body, FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from rainbow.agilent.chemstation import parse_ms
 
@@ -33,11 +36,21 @@ from .library.mspepsearch_bridge import search_spectrum_with_mspepsearch, hits_t
 
 STATE = Path(os.getenv('CAL_STATE', '/data/state'))
 SOURCE = Path(os.getenv('CAL_SOURCE', '/data/source'))
+REPOSITORY_ROOT = Path(os.getenv('CAL_REPOSITORY_ROOT', '/mnt/Nguyen Lab')).resolve()
 WEB = Path(os.getenv('CAL_WEB', '/app/web'))
 PROJECT = {'id': 'cal-test', 'name': 'Cal Test', 'can_edit': True, 'project_type': 'gcms_calibration'}
+SUPPORTED_INSTRUMENTS = ('GC-MS', 'Orbitrap', 'UV-VIS', 'LC-MS', 'Hapsite')
 WORK_LOCK = threading.Lock()
 CONVERT_LOCK = threading.Lock()
 STOP = threading.Event()
+TRANSFER_LOCK = threading.Lock()
+
+LIBRARY_SCHEMA = {
+    'calibration_drafts': 'CREATE TABLE IF NOT EXISTS calibration_drafts (id TEXT PRIMARY KEY, project_id TEXT NOT NULL, revision INTEGER NOT NULL, body TEXT NOT NULL)',
+    'calibration_versions': 'CREATE TABLE IF NOT EXISTS calibration_versions (id TEXT NOT NULL REFERENCES calibration_drafts(id), version TEXT NOT NULL, body TEXT NOT NULL, PRIMARY KEY(id, version))',
+    'calibration_preparations': 'CREATE TABLE IF NOT EXISTS calibration_preparations (id TEXT PRIMARY KEY, project_id TEXT NOT NULL, dataset_id TEXT NOT NULL, body TEXT NOT NULL)',
+}
+PUBLISHED_INSTALL_NOTE = '''# Published calibration package\n\nThis package contains the latest published version for each calibration. It is safe to import into an existing library: matching records are skipped, and conflicting IDs are rejected instead of overwritten.\n'''
 
 
 @contextmanager
@@ -71,6 +84,16 @@ def all_records(kind):
         return [json.loads(row[0]) for row in db.execute('SELECT body FROM records WHERE kind=? ORDER BY rowid', (kind,))]
 
 
+def repository_path(value=''):
+    """Resolve a user-selected repository path without allowing traversal."""
+    raw = str(value or '').strip()
+    candidate = Path(raw) if raw.startswith('/') else REPOSITORY_ROOT / raw
+    candidate = candidate.resolve()
+    if not candidate.is_relative_to(REPOSITORY_ROOT):
+        raise HTTPException(400, 'Folder must be inside the mounted Nguyen Lab share')
+    return candidate
+
+
 def actor(request: Request):
     return {'id': request.headers.get('tailscale-user-login') or 'lab-worker',
             'name': request.headers.get('tailscale-user-name') or 'Lab'}
@@ -90,8 +113,10 @@ def dataset(id):
 
 
 def run_path(id):
-    path = (SOURCE / dataset(id)['path']).resolve()
-    if not path.is_relative_to(SOURCE.resolve()) or not path.is_dir():
+    stored = Path(dataset(id)['path'])
+    path = (stored if stored.is_absolute() else SOURCE / stored).resolve()
+    allowed = path.is_relative_to(SOURCE.resolve()) or path.is_relative_to(REPOSITORY_ROOT)
+    if not allowed or not path.is_dir():
         raise HTTPException(404, 'Source run unavailable')
     return path
 
@@ -116,13 +141,21 @@ def method_metadata(id, user):
 
 
 def scan_source():
+    selected = get('state', 'selected_source') or get('state', 'source_roots', {}).get('GC-MS')
     manifest = SOURCE / 'active.json'
-    if not manifest.is_file():
-        return {'fingerprint': '', 'ids': [], 'synced_at': '', 'error': 'Waiting for source-folder sync'}
-    info = json.loads(manifest.read_text())
-    root = (SOURCE / info['folder']).resolve()
-    if not root.is_relative_to(SOURCE.resolve()):
-        raise ValueError('Invalid source path')
+    info = json.loads(manifest.read_text()) if manifest.is_file() else None
+    if selected:
+        root = repository_path(selected['path'])
+        fingerprint = hashlib.sha256()
+        synced_at = stamp()
+    elif info:
+        root = (SOURCE / info['folder']).resolve()
+        if not root.is_relative_to(SOURCE.resolve()):
+            raise ValueError('Invalid source path')
+        fingerprint = None
+        synced_at = info.get('synced_at', '')
+    else:
+        return {'fingerprint': '', 'ids': [], 'synced_at': '', 'error': 'Choose a source folder or wait for source-folder sync'}
     ids = []
     for folder in sorted(root.iterdir()):
         if not folder.is_dir() or folder.suffix.lower() != '.d':
@@ -135,14 +168,18 @@ def scan_source():
             with file.open('rb') as stream:
                 digest.update(hashlib.file_digest(stream, 'sha256').digest())
         id = 'run-' + digest.hexdigest()[:24]
+        if fingerprint is not None:
+            fingerprint.update(id.encode())
         if get('run', id) is None:
             method = folder / 'acqmeth.txt'
-            put('run', id, {'id': id, 'filename': folder.name, 'path': str(folder.relative_to(SOURCE)),
+            path = str(folder) if selected else str(folder.relative_to(SOURCE))
+            put('run', id, {'id': id, 'filename': folder.name, 'path': path,
                            'profile': {**(acquisition_profile(method) if method.is_file() else {}),
                                        'response': 'TIC', 'area_multiplier': '10', 'integration': 'endpoints'},
                            'source': 'acqmeth.txt', **acquisition_timing(folder)})
         ids.append(id)
-    result = {'fingerprint': info['fingerprint'], 'ids': ids, 'synced_at': info['synced_at'], 'error': ''}
+    result = {'fingerprint': fingerprint.hexdigest() if fingerprint is not None else info['fingerprint'],
+              'ids': ids, 'synced_at': synced_at, 'error': '', 'folder': str(root)}
     put('state', 'source', result)
     return result
 
@@ -220,9 +257,52 @@ def start_job():
     return job
 
 
+def monitor_folder(root):
+    digest = hashlib.sha256()
+    count = 0
+    latest = 0
+    for base, directories, files in os.walk(root):
+        directories[:] = sorted(directory for directory in directories if not directory.startswith('$'))
+        for name in sorted(files):
+            path = Path(base) / name
+            try:
+                stat = path.stat()
+            except OSError:
+                continue
+            relative = str(path.relative_to(root))
+            digest.update(relative.encode())
+            digest.update(str(stat.st_size).encode())
+            digest.update(str(stat.st_mtime_ns).encode())
+            count += 1
+            latest = max(latest, stat.st_mtime_ns)
+    return {'fingerprint': digest.hexdigest(), 'file_count': count,
+            'last_modified': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime(latest / 1_000_000_000)) if latest else ''}
+
+
+def monitor_sources():
+    roots = get('state', 'source_roots', {})
+    if not roots:
+        return
+    changed = False
+    for instrument, record in list(roots.items()):
+        try:
+            root = repository_path(record.get('path'))
+            snapshot = monitor_folder(root)
+            previous = record.get('fingerprint', '')
+            roots[instrument] = {**record, **snapshot, 'last_checked_at': stamp(),
+                                 'last_changed_at': stamp() if snapshot['fingerprint'] != previous else record.get('last_changed_at', '')}
+            changed = True
+        except (HTTPException, OSError, ValueError) as error:
+            roots[instrument] = {**record, 'last_checked_at': stamp(), 'error': str(error)}
+            changed = True
+    if changed:
+        put('state', 'source_roots', roots)
+
+
 def watch():
     while not STOP.wait(60):
         try:
+            monitor_sources()
             source = scan_source()
             if source['ids'] and get('state', 'settings', {'automatic': True})['automatic']:
                 if source['fingerprint'] != get('state', 'processed', {}).get('fingerprint'):
@@ -255,7 +335,7 @@ def export_workbook(payload: dict = Body(...)):
 
 @app.get('/api/lab/repositories')
 def repositories(instrument: str):
-    if instrument not in ('GC-MS', 'UV-VIS', 'LC-MS', 'Hapsite'):
+    if instrument not in SUPPORTED_INSTRUMENTS:
         raise HTTPException(400, 'Unknown instrument')
     return get('repositories', instrument, {'revision': 0, 'locations': []})
 
@@ -293,7 +373,7 @@ def save_repositories(instrument: str, payload: dict = Body(...)):
         db.execute('INSERT OR REPLACE INTO records VALUES (?,?,?)', ('repositories', instrument, json.dumps(result)))
     return result
 
-BRANCHES = {'GC-MS': None, 'UV-VIS': 'uv-vis', 'LC-MS': 'lc-ms', 'Hapsite': 'hapsite'}
+BRANCHES = {'GC-MS': None, 'Orbitrap': 'orbitrap', 'UV-VIS': 'uv-vis', 'LC-MS': 'lc-ms', 'Hapsite': 'hapsite'}
 
 
 @app.get('/api/lab/manual-calibrations')
@@ -667,9 +747,199 @@ def compound_names(name: str):
     return common_name_choices(name=name.strip(), limit=100)
 
 
+def _library_rows(path, table):
+    columns = {
+        'calibration_drafts': ('id', 'project_id', 'revision', 'body'),
+        'calibration_versions': ('id', 'version', 'body'),
+        'calibration_preparations': ('id', 'project_id', 'dataset_id', 'body'),
+    }[table]
+    with sqlite3.connect(path) as db:
+        db.row_factory = sqlite3.Row
+        db.execute(LIBRARY_SCHEMA[table])
+        return [tuple(row[column] for column in columns) for row in db.execute(
+            f"SELECT {', '.join(columns)} FROM {table}")]
+
+
+def _make_published_package():
+    source = STATE / 'calibration_library.sqlite'
+    published = []
+    temp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(prefix='published-export-', suffix='.sqlite', delete=False) as handle:
+            temp_path = Path(handle.name)
+        with sqlite3.connect(temp_path) as output:
+            for statement in LIBRARY_SCHEMA.values():
+                output.execute(statement)
+            if source.exists():
+                with sqlite3.connect(source) as current:
+                    current.row_factory = sqlite3.Row
+                    drafts = current.execute(
+                        'SELECT id, project_id, revision, body FROM calibration_drafts '
+                        'WHERE id IN (SELECT DISTINCT id FROM calibration_versions) ORDER BY rowid').fetchall()
+                    for draft in drafts:
+                        versions = current.execute(
+                            'SELECT id, version, body FROM calibration_versions WHERE id=? ORDER BY rowid DESC',
+                            (draft['id'],)).fetchall()
+                        if not versions:
+                            continue
+                        version = versions[0]
+                        output.execute('INSERT INTO calibration_drafts VALUES (?,?,?,?)', tuple(draft))
+                        output.execute('INSERT INTO calibration_versions VALUES (?,?,?)', tuple(version))
+                        published.append(json.loads(version['body']))
+            output.commit()
+        database_bytes = temp_path.read_bytes()
+    finally:
+        if temp_path:
+            temp_path.unlink(missing_ok=True)
+    published_bytes = json.dumps(published, indent=2, ensure_ascii=False, allow_nan=False).encode('utf-8')
+    manifest = {
+        'exported_at_utc': stamp(),
+        'scope': 'Latest published version per calibration only',
+        'count': len(published),
+        'calibrations': [{'id': item.get('id'), 'compound': item.get('compound', ''), 'version': item.get('version')}
+                         for item in published],
+        'sha256': {
+            'calibration_library.sqlite': hashlib.sha256(database_bytes).hexdigest(),
+            'published.json': hashlib.sha256(published_bytes).hexdigest(),
+        },
+    }
+    package = io.BytesIO()
+    with zipfile.ZipFile(package, 'w', compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr('manifest.json', json.dumps(manifest, indent=2, ensure_ascii=False).encode('utf-8'))
+        archive.writestr('INSTALL.md', PUBLISHED_INSTALL_NOTE.encode('utf-8'))
+        archive.writestr('calibration_library.sqlite', database_bytes)
+        archive.writestr('published.json', published_bytes)
+    return package.getvalue(), manifest
+
+
+def _validate_published_package(payload):
+    if len(payload) > 50 * 1024 * 1024:
+        raise HTTPException(413, 'Published package is larger than 50 MB')
+    try:
+        archive = zipfile.ZipFile(io.BytesIO(payload))
+        names = archive.namelist()
+        allowed = {'manifest.json', 'published.json', 'calibration_library.sqlite', 'INSTALL.md'}
+        if len(names) != len(set(names)) or any('/' in name or name not in allowed for name in names):
+            raise ValueError('Unexpected package contents')
+        required = {'manifest.json', 'published.json', 'calibration_library.sqlite'}
+        if not required.issubset(names):
+            raise ValueError('Package is missing a required file')
+        manifest = json.loads(archive.read('manifest.json'))
+        published = json.loads(archive.read('published.json'))
+        database_bytes = archive.read('calibration_library.sqlite')
+    except (zipfile.BadZipFile, KeyError, ValueError, json.JSONDecodeError) as error:
+        raise HTTPException(400, f'Invalid published package: {error}')
+    if not isinstance(manifest, dict) or not isinstance(published, list):
+        raise HTTPException(400, 'Invalid published package metadata')
+    expected_hashes = manifest.get('sha256') or {}
+    for name, data in (('calibration_library.sqlite', database_bytes),
+                       ('published.json', archive.read('published.json'))):
+        if expected_hashes.get(name) != hashlib.sha256(data).hexdigest():
+            raise HTTPException(400, f'Checksum failed for {name}')
+    if manifest.get('count') != len(published) or manifest.get('scope') != 'Latest published version per calibration only':
+        raise HTTPException(400, 'Unsupported published package scope')
+    published_keys = {(item.get('id'), item.get('version')) for item in published
+                      if isinstance(item, dict) and item.get('id') and item.get('version')}
+    if len(published_keys) != len(published):
+        raise HTTPException(400, 'Published records must have unique IDs and versions')
+    temp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(prefix='published-import-', suffix='.sqlite', delete=False) as handle:
+            temp_path = Path(handle.name)
+            handle.write(database_bytes)
+        with sqlite3.connect(temp_path) as incoming:
+            if incoming.execute('PRAGMA integrity_check').fetchone()[0] != 'ok':
+                raise ValueError('SQLite integrity check failed')
+            for statement in LIBRARY_SCHEMA.values():
+                table = statement.split()[5]
+                if not incoming.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (table,)).fetchone():
+                    raise ValueError(f'Missing table {table}')
+            incoming_versions = {(row[0], row[1]) for row in incoming.execute('SELECT id, version FROM calibration_versions')}
+            if incoming_versions != published_keys:
+                raise ValueError('Published JSON does not match the database versions')
+            rows = {table: _library_rows(temp_path, table) for table in LIBRARY_SCHEMA}
+    except (sqlite3.DatabaseError, ValueError) as error:
+        raise HTTPException(400, f'Invalid published database: {error}')
+    finally:
+        if temp_path:
+            temp_path.unlink(missing_ok=True)
+    return rows, published
+
+
+@app.get('/api/lab/published/export')
+def published_export():
+    with TRANSFER_LOCK:
+        package, _ = _make_published_package()
+    filename = f"calibration-published-{time.strftime('%Y%m%d-%H%M%S', time.gmtime())}.zip"
+    return Response(package, media_type='application/zip',
+                    headers={'Content-Disposition': f'attachment; filename="{filename}"'})
+
+
+@app.post('/api/lab/published/import')
+async def published_import(request: Request):
+    rows, published = _validate_published_package(await request.body())
+    db_path = STATE / 'calibration_library.sqlite'
+    key_columns = {
+        'calibration_drafts': ('id',),
+        'calibration_versions': ('id', 'version'),
+        'calibration_preparations': ('id',),
+    }
+    with TRANSFER_LOCK:
+        STATE.mkdir(parents=True, exist_ok=True)
+        with sqlite3.connect(db_path) as current:
+            for statement in LIBRARY_SCHEMA.values():
+                current.execute(statement)
+            conflicts = []
+            skipped = {table: 0 for table in LIBRARY_SCHEMA}
+            inserts = {table: 0 for table in LIBRARY_SCHEMA}
+            to_insert = {table: [] for table in LIBRARY_SCHEMA}
+            for table, incoming_rows in rows.items():
+                columns = tuple(key_columns[table])
+                key_sql = ' AND '.join(f'{column}=?' for column in columns)
+                for row in incoming_rows:
+                    key = tuple(row[index] for index, column in enumerate(('id', 'version', 'body', 'project_id', 'revision', 'dataset_id')) if column in columns)
+                    # The row layouts are fixed above; derive keys directly to keep the conflict check explicit.
+                    if table == 'calibration_drafts':
+                        key = (row[0],)
+                    elif table == 'calibration_versions':
+                        key = (row[0], row[1])
+                    else:
+                        key = (row[0],)
+                    existing = current.execute(f'SELECT * FROM {table} WHERE {key_sql}', key).fetchone()
+                    if existing:
+                        if tuple(existing) != tuple(row):
+                            conflicts.append(f'{table}:{key}')
+                        else:
+                            skipped[table] += 1
+                    else:
+                        to_insert[table].append(row)
+            if conflicts:
+                raise HTTPException(409, 'Import contains conflicting existing records: ' + ', '.join(conflicts[:10]))
+            backup_name = None
+            if any(to_insert.values()):
+                backup_name = f"calibration_library.before-import-{time.strftime('%Y%m%d-%H%M%S', time.gmtime())}.sqlite"
+                backup_path = STATE / backup_name
+                current.commit()
+                with sqlite3.connect(backup_path) as backup:
+                    current.backup(backup)
+            current.execute('BEGIN IMMEDIATE')
+            for table in ('calibration_drafts', 'calibration_versions', 'calibration_preparations'):
+                columns = {'calibration_drafts': 'id,project_id,revision,body',
+                            'calibration_versions': 'id,version,body',
+                            'calibration_preparations': 'id,project_id,dataset_id,body'}[table]
+                for row in to_insert[table]:
+                    current.execute(f'INSERT OR IGNORE INTO {table} ({columns}) VALUES ({",".join("?" for _ in row)})', row)
+                inserts[table] = len(to_insert[table])
+            current.commit()
+    return {'ok': True, 'calibrations': len(published), 'imported': inserts, 'skipped': skipped,
+            'backup': backup_name}
+
+
 @app.get('/api/lab/status')
 def status():
-    return {'source': get('state', 'source', {}), 'jobs': list(reversed(all_records('job')))[0:10],
+    return {'source': get('state', 'source', {}), 'selection': get('state', 'selected_source', {}),
+            'selections': get('state', 'source_roots', {}),
+            'jobs': list(reversed(all_records('job')))[0:10],
             'settings': get('state', 'settings', {'automatic': True}),
             'watch_error': get('state', 'watch_error', {}), 'runs': len(all_records('run'))}
 
@@ -690,6 +960,44 @@ def settings(payload: dict = Body(...)):
 @app.post('/api/lab/scan')
 def scan():
     return {'job': start_job()}
+
+
+@app.get('/api/lab/repository-browse')
+def repository_browse(path: str = ''):
+    current = repository_path(path)
+    entries = []
+    for entry in sorted(current.iterdir(), key=lambda item: (not item.is_dir(), item.name.casefold())):
+        if entry.is_dir() and not entry.name.startswith('$'):
+            entries.append({'name': entry.name, 'path': str(entry.relative_to(REPOSITORY_ROOT))})
+    relative = str(current.relative_to(REPOSITORY_ROOT)) if current != REPOSITORY_ROOT else ''
+    parent = str(current.parent.relative_to(REPOSITORY_ROOT)) if current != REPOSITORY_ROOT else None
+    return {'root': str(REPOSITORY_ROOT), 'path': relative, 'absolute_path': str(current),
+            'parent_path': parent, 'entries': entries[:500]}
+
+
+@app.get('/api/lab/source-selection')
+def source_selection(instrument: str = 'GC-MS'):
+    if instrument not in SUPPORTED_INSTRUMENTS:
+        raise HTTPException(400, 'Unknown instrument')
+    roots = get('state', 'source_roots', {})
+    return roots.get(instrument, {'instrument': instrument, 'path': '', 'name': ''})
+
+
+@app.put('/api/lab/source-selection')
+def save_source_selection(instrument: str, payload: dict = Body(...)):
+    if instrument not in SUPPORTED_INSTRUMENTS:
+        raise HTTPException(400, 'Unknown instrument')
+    path = repository_path(payload.get('path'))
+    if not path.is_dir():
+        raise HTTPException(400, 'Choose an existing folder')
+    roots = get('state', 'source_roots', {})
+    result = {'instrument': instrument, 'path': str(path), 'name': path.name or str(path),
+              'updated_at': stamp(), 'error': ''}
+    roots[instrument] = result
+    put('state', 'source_roots', roots)
+    if instrument == 'GC-MS':
+        put('state', 'selected_source', result)
+    return result
 
 
 @app.get('/api/lab/current-runs')

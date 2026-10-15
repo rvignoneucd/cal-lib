@@ -1,11 +1,11 @@
-import { StrictMode, useEffect, useState } from 'react'
+import { StrictMode, useEffect, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
-import { Database, Moon, Sun } from 'lucide-react'
+import { Download, Moon, Sun, Upload } from 'lucide-react'
 import '../index.css'
 import '../App.css'
 import '../styles/controls.css'
 import '../styles/dropdownMenu.css'
-import { apiGet, apiSend } from '../api/client'
+import { apiGet, apiSend, apiUpload } from '../api/client'
 import { applyThemeMode } from '../features/chrome/appChromeUtils'
 import AppErrorBoundary from '../components/AppErrorBoundary'
 import { Dropdown } from '../components/AppPrimitives'
@@ -26,9 +26,11 @@ function Lab() {
   const [busy,setBusy]=useState(false)
   const [actionTarget,setActionTarget]=useState(null)
   const [libraryMenu,setLibraryMenu]=useState(null),[manualMenu,setManualMenu]=useState(null)
-  const [instrument,setInstrument]=useState(()=>{const value=new URLSearchParams(window.location.search).get('instrument');return ['GC-MS','UV-VIS','LC-MS','Hapsite'].includes(value)?value:'GC-MS'})
+  const [instrument,setInstrument]=useState(()=>{const value=new URLSearchParams(window.location.search).get('instrument');return ['GC-MS','Orbitrap','UV-VIS','LC-MS','Hapsite'].includes(value)?value:'GC-MS'})
   const [workbookMenu,setWorkbookMenu]=useState(null)
   const [branch,setBranch]=useState(null),[branchError,setBranchError]=useState('')
+  const [transferMessage,setTransferMessage]=useState('')
+  const importInput=useRef(null)
   useEffect(()=>{
     let active=true
     setBranch(null);setBranchError('')
@@ -46,10 +48,20 @@ function Lab() {
     return()=>{alive=false;clearInterval(timer)}
   },[])
   async function scan() {setBusy(true);setError('');try{await apiSend('/lab/scan','POST',{});setState(await apiGet('/lab/status'))}catch(e){setError(e.message)}finally{setBusy(false)}}
+  function exportPublished(){setTransferMessage('Preparing published export…');window.location.assign('/api/lab/published/export')}
+  async function importPublished(event){
+    const file=event.target.files?.[0]
+    event.target.value=''
+    if(!file)return
+    setBusy(true);setError('');setTransferMessage('Importing published calibrations…')
+    try{const result=await apiUpload('/lab/published/import',file);setTransferMessage(`Imported ${result.calibrations} published calibration${result.calibrations===1?'':'s'}. Existing matching records were preserved.`);setPublishedRefresh(Date.now())}
+    catch(e){setTransferMessage('');setError(e.message)}finally{setBusy(false)}
+  }
+  const [publishedRefresh,setPublishedRefresh]=useState(0)
   const job=state?.jobs?.[0],running=['queued','running'].includes(job?.state)
   const runProgress=running?job?.progress?.match(/Run (\d+)\/(\d+):/):null
   return <div className="cal-site atmos-controls">
-    <header className="cal-masthead"><a className="icon-button" href={`/?instrument=${encodeURIComponent(instrument)}`} aria-label="Main library page" title="Main library page"><Database size={26}/></a><div><strong>Curve Library</strong><span>Lab / {instrument}</span></div>
+    <header className="cal-masthead"><a className="icon-button cal-brand-mark" href={`/?instrument=${encodeURIComponent(instrument)}`} aria-label="CalLib main library page" title="CalLib main library page"><img src="/cal-lib-logo.png" alt=""/></a><div><strong>CalLib</strong><span>Calibration library / {instrument}</span></div>
       <nav aria-label="Library"><Dropdown aria-label={`${instrument} menu`} placeholder="Menu" menuPortal value="" onChange={value=>{
         if(value==='custom'){manualMenu?.open();return}
         if(value==='workbooks'){workbookMenu?.open();return}
@@ -63,10 +75,14 @@ function Lab() {
         {value:'new',label:'New calibration',disabled:instrument==='GC-MS'?!libraryMenu||libraryMenu.disabled:!manualMenu||manualMenu.disabled},
         {value:'scan',label:'Scan now',disabled:instrument!=='GC-MS'||busy||running},
         {value:'columns',label:view==='curves'?'Column inventory':'Back to curves',disabled:instrument!=='GC-MS'}]}/>
-        <SlidingPill label="Instrument database" value={instrument} onChange={value=>{setInstrument(value);setView('curves')}} options={['GC-MS','UV-VIS','LC-MS','Hapsite'].map(value=>({value,label:value}))}/>
+        <SlidingPill label="Instrument database" value={instrument} onChange={value=>{setInstrument(value);setView('curves')}} options={['GC-MS','Orbitrap','UV-VIS','LC-MS','Hapsite'].map(value=>({value,label:value}))}/>
         <RepositoryLocations instrument={instrument}/>
+        <button className="icon-button" title="Export published database" aria-label="Export published database" disabled={busy} onClick={exportPublished}><Download size={18}/></button>
+        <button className="icon-button" title="Import published database" aria-label="Import published database" disabled={busy} onClick={()=>importInput.current?.click()}><Upload size={18}/></button>
+        <input ref={importInput} type="file" accept=".zip,application/zip" hidden onChange={importPublished}/>
         <button className="icon-button" title={theme==='light'?'Dark theme':'Light theme'} aria-label={theme==='light'?'Dark theme':'Light theme'} onClick={()=>setTheme(theme==='light'?'dark':'light')}>{theme==='light'?<Moon size={18}/>:<Sun size={18}/>}</button></nav>
     </header>
+    {transferMessage&&<div className="cal-subtle" role="status" aria-live="polite">{transferMessage}</div>}
     <div className="lab-tools"><ManualCalibrations instrument={instrument} theme={theme} onSaved={setInstrument} onMenuChange={setManualMenu}/>
       <WorkbookImports instrument={instrument} theme={theme} onMenuChange={setWorkbookMenu}/>
     </div>
@@ -78,7 +94,7 @@ function Lab() {
       {state?.watch_error?.error&&<span role="alert">Folder watcher: {state.watch_error.error}</span>}
       <small>{state?.source.ids?.length??0} source files · Last sync: {state?.source.synced_at?new Date(state.source.synced_at).toLocaleString():'Waiting'}</small>
     </section>}
-    <div hidden={view!=='curves'||instrument!=='GC-MS'}><CalibrationLibrary theme={theme} lab onDiscover={scan} refreshToken={job?.completed_at} onMenuChange={setLibraryMenu}/></div>
+    <div hidden={view!=='curves'||instrument!=='GC-MS'}><CalibrationLibrary theme={theme} lab onDiscover={scan} refreshToken={`${job?.completed_at||''}:${publishedRefresh}`} onMenuChange={setLibraryMenu}/></div>
     <div hidden={instrument!=='GC-MS'}>{view==='columns'&&<LabColumns/>}</div>
     {instrument!=='GC-MS'&&<main className="cal-main"><h1>{instrument}</h1>{branchError?<p role="alert">{branchError}</p>:!branch?<p role="status">Loading database...</p>:<><p role="status">{branch.entries.length} file-derived calibrations</p>{branch.entries.length?<table><thead><tr><th>Compound</th><th>Name</th></tr></thead><tbody>{branch.entries.map(entry=><tr key={entry.id}><td>{entry.compound}</td><td>{entry.name}</td></tr>)}</tbody></table>:<p>No file-derived calibrations yet.</p>}<p className="cal-subtle">Instrument-specific file import is not available yet.</p></>}</main>}
     <footer className="lab-console" hidden={instrument!=='GC-MS'}><details><summary>Intake console · {state?.source.ids?.length??0} runs · {running?'Scanning':job?.state||'Waiting'}</summary>

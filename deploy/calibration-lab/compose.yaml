@@ -8,13 +8,15 @@ services:
     init: true
     environment:
       ATMOS_LOCAL_STATE_ROOT: /data/state
+      CAL_REPOSITORY_ROOT: /mnt/Nguyen Lab
       ATMOS_MSPEPSEARCH_URL: ${ATMOS_MSPEPSEARCH_URL:-}
       ATMOS_MSPEPSEARCH_TOKEN: ${ATMOS_MSPEPSEARCH_TOKEN:-}
     ports:
-      - "127.0.0.1:8787:8787"
+      - "192.168.0.231:8787:8787"
     volumes:
       - ../../data/state:/data/state
       - ../../data/source:/data/source:ro
+      - /mnt/Nguyen Lab:/mnt/Nguyen Lab:ro
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8787/api/health', timeout=5)"]
       interval: 30s
