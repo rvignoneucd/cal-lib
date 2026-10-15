@@ -107,12 +107,10 @@
 .cal-sort-heading { display:inline-flex; align-items:center; gap:4px; }
 .cal-compound-info { min-width:200px; max-width:340px; font-size:12px; margin-top:8px; }
 .cal-compound-info img { display:block; object-fit:contain; max-width:100%; }
-.cal-compound-info-structure { margin:0; width:350px; min-width:350px; max-width:350px; height:350px; }
-.cal-compound-info-structure img { width:350px; height:350px; }
+.cal-compound-info-structure { margin:0; width:400px; min-width:400px; max-width:400px; height:350px; display:flex; align-items:center; justify-content:center; }
+.cal-compound-info-structure img { width:350px; height:350px; flex:none; }
 .cal-peak-preview { width:400px; max-width:100%; height:200px; }
 .cal-peak-preview .cal-plot { width:100%; height:100%; min-height:0; }
-.cal-compound-info-structure:has(.cal-peak-preview) { width:400px; min-width:400px; max-width:400px; }
-.cal-compound-info-structure:has(.cal-peak-preview) .cal-peak-preview { max-width:none; }
 .cal-compound-info-details { margin:0; max-width:560px; font-size:14px; line-height:1.3; }
 .cal-compound-info-details small { font-size:12px; }
 .cal-compound-library .cal-curve-thumbnail { width:320px; }
@@ -125,6 +123,7 @@
 .cal-compound-library th[aria-sort='none'] .cal-sort-heading > :last-child { visibility:hidden; }
 .cal-mobile-details .cal-compound-info-structure { width:min(350px,100%); min-width:0; max-width:100%; height:auto; aspect-ratio:1; }
 .cal-mobile-details .cal-compound-info-structure img { width:100%; height:100%; }
+.cal-mobile-details .cal-compound-info-structure:has(.cal-peak-preview) { height:200px; aspect-ratio:auto; }
 @media(max-width:700px) { .cal-peak-preview { width:100%; } }
 .cal-identity { border-top:1px solid var(--control-border); padding:16px 0; }
 .cal-identity-spectrum { height:280px; min-width:0; }
