@@ -58,9 +58,9 @@
 :root[data-theme='dark'] .cal-lab-main .cal-library-table tr:has(.cal-expand) { background:#292e38; }
 :root[data-theme='dark'] .cal-lab-main .cal-library-table tr:has(.cal-inline-preview) { background:#191c20; }
 .cal-lab-main .cal-library-table tr:has(.cal-expand) > td:first-child { padding-left:24px; }
-.cal-curve-thumbnail { display:flex; flex-direction:column; margin:0; width:256px; white-space:normal; }
-.cal-curve-thumbnail-chart { width:256px; height:256px; }
-.cal-curve-thumbnail-chart .cal-plot { width:256px; height:256px; min-height:0; }
+.cal-curve-thumbnail { display:flex; flex-direction:column; margin:0; width:512px; white-space:normal; }
+.cal-curve-thumbnail-chart { width:512px; height:409px; }
+.cal-curve-thumbnail-chart .cal-plot { width:512px; height:409px; min-height:0; }
 .cal-curve-thumbnail-chart > span { display:flex; align-items:center; justify-content:center; height:100%; padding:16px; box-sizing:border-box; overflow-wrap:anywhere; }
 .cal-curve-thumbnail figcaption { order:-1; min-height:40px; box-sizing:border-box; font-size:14px; font-weight:600; padding:4px 0 12px; color:var(--control-text); }
 .cal-compound-library tbody tr:nth-child(odd) { background:#f2f5fa; }
@@ -73,14 +73,14 @@
 .cal-site .cal-compound-library .cal-compound-header > td { padding:14px 10px; vertical-align:middle; }
 .cal-site .cal-compound-library .cal-compound-header .dropdown { margin-bottom:0; }
 .cal-site .cal-compound-library .cal-compound-header > td > .cal-text-link { min-height:0; padding-bottom:0; }
-.cal-site .cal-compound-library .cal-compound-body { height:350px; }
-.cal-site .cal-compound-library .cal-compound-body > td { height:350px; box-sizing:border-box; padding:0 10px; vertical-align:top; overflow:hidden; }
+.cal-site .cal-compound-library .cal-compound-body { height:409px; }
+.cal-site .cal-compound-library .cal-compound-body > td { height:409px; box-sizing:border-box; padding:0 10px; vertical-align:top; overflow:hidden; }
 .cal-compound-library td { vertical-align:top; white-space:normal; overflow-wrap:anywhere; padding-top:18px; }
 .cal-compound-library tbody td:first-child > .cal-text-link { display:block; font-size:18px; font-weight:600; line-height:1.25; min-height:40px; padding-bottom:12px; }
 .cal-compound-library tbody td:nth-child(n+3) { padding-top:22px; }
 .cal-compound-library th .cal-sort-heading { white-space:nowrap; overflow-wrap:normal; }
-.cal-compound-library > tbody > tr > td:first-child { width:420px; min-width:420px; max-width:420px; }
-.cal-compound-library > tbody > tr > td:nth-child(2) { width:340px; }
+.cal-compound-library > tbody > tr > td:first-child { width:532px; min-width:532px; max-width:532px; }
+.cal-compound-library > tbody > tr > td:nth-child(2) { width:532px; }
 .cal-row-actions { display:flex; align-items:flex-start; gap:6px; min-width:126px; }
 .cal-row-actions .cal-copy { width:36px; min-width:36px; }
 .cal-row-actions .cal-copy-feedback { max-width:36px; overflow-wrap:normal; }
@@ -109,14 +109,14 @@
 .cal-sort-heading { display:inline-flex; align-items:center; gap:4px; }
 .cal-compound-info { min-width:200px; max-width:340px; font-size:12px; margin-top:0; }
 .cal-compound-info img { display:block; object-fit:contain; max-width:100%; }
-.cal-compound-info-structure { margin:0; width:400px; min-width:400px; max-width:400px; height:350px; display:flex; align-items:flex-start; justify-content:center; }
-.cal-compound-info-structure img { width:350px; height:350px; flex:none; }
-.cal-peak-preview { width:400px; max-width:100%; height:200px; }
+.cal-compound-info-structure { margin:0; width:512px; min-width:512px; max-width:512px; height:409px; display:flex; align-items:flex-start; justify-content:center; }
+.cal-compound-info-structure img { width:512px; height:409px; flex:none; }
+.cal-peak-preview { width:512px; max-width:100%; height:409px; }
 .cal-peak-preview .cal-plot { width:100%; height:100%; min-height:0; }
 .cal-compound-info-details { margin:0; max-width:560px; font-size:14px; line-height:1.3; }
 .cal-compound-info-details small { font-size:12px; }
-.cal-compound-library .cal-curve-thumbnail { width:320px; }
-.cal-compound-library .cal-curve-thumbnail-chart { width:100%; height:256px; padding:8px; box-sizing:border-box; border:1px solid var(--control-border); border-radius:4px; }
+.cal-compound-library .cal-curve-thumbnail { width:512px; }
+.cal-compound-library .cal-curve-thumbnail-chart { width:512px; height:409px; padding:8px; box-sizing:border-box; border:1px solid var(--control-border); border-radius:4px; }
 .cal-compound-library .cal-curve-thumbnail-chart .cal-plot { width:100%; height:100%; }
 .cal-compound-info-details dl { margin-top:0; }
 .cal-compound-info dl { display:grid; grid-template-columns:90px minmax(0,1fr); gap:4px 8px; }
@@ -126,7 +126,7 @@
 .cal-mobile-details .cal-compound-info-structure { width:min(350px,100%); min-width:0; max-width:100%; height:auto; aspect-ratio:1; }
 .cal-mobile-details .cal-compound-info-structure img { width:100%; height:100%; }
 .cal-mobile-details .cal-compound-info-structure:has(.cal-peak-preview) { height:200px; aspect-ratio:auto; }
-@media(max-width:700px) { .cal-peak-preview { width:100%; } }
+@media(max-width:700px) { .cal-peak-preview { width:100%; height:auto; aspect-ratio:512/409; } }
 .cal-identity { border-top:1px solid var(--control-border); padding:16px 0; }
 .cal-identity-spectrum { height:280px; min-width:0; }
 .cal-identity-hits { max-height:360px; overflow:auto; }
@@ -206,7 +206,7 @@
 .lab-intake-status progress { width:180px; max-width:100%; accent-color:var(--control-active); }
 .lab-intake-status span { overflow-wrap:anywhere; min-width:0; }
 .lab-intake-status small { color:var(--atmos-ui-muted); }
-.cal-preview-details { display:grid; grid-template-columns:minmax(180px,360px) minmax(340px,540px); height:350px; max-height:350px; box-sizing:border-box; justify-content:space-between; gap:24px; align-items:start; overflow:hidden; container-type:inline-size; font-size:clamp(10px,.65vw,14px); line-height:1.2; }
+.cal-preview-details { display:grid; grid-template-columns:minmax(180px,360px) minmax(340px,540px); height:409px; max-height:409px; box-sizing:border-box; justify-content:space-between; gap:24px; align-items:start; overflow:hidden; container-type:inline-size; font-size:clamp(10px,.65vw,14px); line-height:1.2; }
 .cal-preview-details .cal-compound-info-details { font-size:inherit; line-height:inherit; }
 .cal-preview-details .cal-compound-info dl { grid-template-columns:minmax(70px,90px) minmax(0,1fr); gap:2px 6px; }
 .cal-preview-blocks { display:grid; grid-template-columns:minmax(160px,210px) minmax(200px,310px); gap:clamp(8px,1vw,20px); min-width:0; width:100%; max-width:540px; align-items:start; font-size:inherit; }
