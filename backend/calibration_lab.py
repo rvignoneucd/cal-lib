@@ -565,6 +565,7 @@ def lab_compound_info(name: str):
     # defined WS23 alias cleanup.
     queries = [name]
     cleaned = re.sub(r'^\s*WS\s*[- ]?\s*23\s*[:\-–—]?\s+', '', name, flags=re.IGNORECASE)
+    cleaned = re.sub(r'\s*\(\s*WS\s*[- ]?\s*23\s*\)\s*$', '', cleaned, flags=re.IGNORECASE)
     if cleaned and cleaned.casefold() != name.casefold():
         queries.append(cleaned)
     raw = None

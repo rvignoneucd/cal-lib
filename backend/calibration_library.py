@@ -405,9 +405,12 @@ def register_calibration_library(app, *, current_user, authorize, metadata, anno
                 compound = draft['compound'].strip().casefold()
                 score = 3 if compound == query else 2 if compound.startswith(query) else 1 if query in compound else 0
             detail = store.get(draft['id'])
+            candidate = (detail.get('discovery') or {}).get('candidate') or {}
+            nist_match_name = candidate.get('name') or candidate.get('common_name') or ''
             entries.append({key: detail[key] for key in ('id', 'project_id', 'name', 'compound', 'unit', 'mode', 'profile', 'revision', 'updated_at')} |
                            {'author': detail.get('author') or detail.get('created_by') or 'Unknown', 'editable': role in ('owner', 'editor'), 'published_count': len(detail['versions']),
                             'latest_version': detail['versions'][0]['version'] if detail['versions'] else None,
+                            'nist_match_name': nist_match_name,
                             'series': (detail.get('discovery') or {}).get('series'),
                             'sequence': (detail.get('discovery') or {}).get('sequence'),
                             'qualification': (detail.get('discovery') or {}).get('qualification'),
