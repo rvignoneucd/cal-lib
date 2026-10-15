@@ -4,6 +4,7 @@ import {standardHint} from './standardHints'
 import Plot from '../components/LazyPlotlyPlot'
 import ChevronIndicator from '../components/ChevronIndicator'
 import {Plus,FileChartColumn} from 'lucide-react'
+import {concentrationOrder} from './standardHints'
 
 function cleanFolderPath(value) {
   const path=String(value || '').replaceAll('\\', '/').replace(/^\/+|\/+$/g, '')
@@ -19,6 +20,20 @@ function folderGroup(groups, folderPath) {
   return groups.get(key)
 }
 
+function sourceGroup(groups, file, fallback='Unclassified') {
+  const folder=cleanFolderPath(file?.source_folder)
+  if(folder)return folderGroup(groups,folder)
+  const label=standardHint(file?.filename).series||fallback
+  const key=`root-series:${label.toLowerCase()}`
+  if(!groups.has(key))groups.set(key,{key,label,folderPath:'Root folder',entries:[],files:[]})
+  return groups.get(key)
+}
+
+function addFile(group, file) {
+  if(!group.files.some(item=>item.id===file.id))group.files.push(file)
+  group.files.sort((a,b)=>concentrationOrder(a,b)||a.filename.localeCompare(b.filename,undefined,{numeric:true,sensitivity:'base'}))
+}
+
 export default function LibrarySourceGroups({entries,projects,query,renderDetails,onCreate,disabled}) {
   const [expanded,setExpanded]=useState({}),[compounds,setCompounds]=useState({})
   const [files,setFiles]=useState([]),[error,setError]=useState(''),[trace,setTrace]=useState(null)
@@ -26,23 +41,26 @@ export default function LibrarySourceGroups({entries,projects,query,renderDetail
   useEffect(()=>{let active=true;apiGet('/calibration-library/sources/cal-test').then(data=>{if(active)setFiles(data.files)}).catch(e=>{if(active)setError(e.message)});return()=>{active=false}},[])
   const groupsMap=new Map()
   for(const entry of entries) {
-    const paths=[...new Set((entry.source_files||[]).map(file=>cleanFolderPath(file.source_folder)).filter(Boolean))]
-    const groups=paths.length?paths:['']
-    for(const path of groups) {
-      const group=folderGroup(groupsMap,path)
-      if(!group.entries.some(item=>item.id===entry.id))group.entries.push(entry)
-      for(const file of entry.source_files||[]) {
-        if(cleanFolderPath(file.source_folder)===path&&!group.files.some(item=>item.id===file.id))group.files.push(file)
+    const sourceFiles=entry.source_files||[]
+    const groupFiles=sourceFiles.length?sourceFiles:[{filename:entry.series||entry.name||''}]
+    const entryGroups=new Set()
+    for(const file of groupFiles) {
+      const group=sourceGroup(groupsMap,file,entry.series||entry.name||'Unclassified')
+      if(!entryGroups.has(group.key)) {
+        entryGroups.add(group.key)
+        if(!group.entries.some(item=>item.id===entry.id))group.entries.push(entry)
+      }
+      for(const sourceFile of sourceFiles) {
+        if(sourceGroup(groupsMap,sourceFile,entry.series||entry.name||'Unclassified').key===group.key)addFile(group,sourceFile)
       }
     }
   }
   for(const file of files){
-    const group=folderGroup(groupsMap,file.source_folder)
-    if(!group.files.some(f=>f.id===file.id))group.files.push(file)
+    addFile(sourceGroup(groupsMap,file),file)
   }
   const groups=[...groupsMap.values()]
   const visible=groups.filter(g=>!query.trim()||g.entries.length||[g.label,g.folderPath,...g.files.map(f=>f.filename)].some(s=>s.toLowerCase().includes(query.trim().toLowerCase())))
-    .sort((a,b)=>(a.folderPath||'').localeCompare(b.folderPath||'',undefined,{numeric:true}))
+    .sort((a,b)=>a.label.localeCompare(b.label,undefined,{numeric:true,sensitivity:'base'}))
   async function openFile(file){const id=++requestId.current;setTrace({file});setError('');try{const result=await apiGet(`/datasets/${file.id}/chromatogram`);if(id===requestId.current)setTrace({file,data:{rt:result.points.map(p=>p.x),tic:result.points.map(p=>p.y)}})}catch(e){if(id===requestId.current){setTrace(null);setError(e.message)}}}
   return <div className="cal-source-library" aria-label="Calibrations by source">
     {error&&<p role="alert">{error}</p>}
@@ -52,9 +70,9 @@ export default function LibrarySourceGroups({entries,projects,query,renderDetail
       const open=expanded[group.key]??Boolean(query.trim()),panel=`cal-source-${index}`
       return <section className="cal-source-group" key={group.key}>
         <div style={{display:'flex',alignItems:'center',gap:8}}>
-          <button className="icon-button" title={`Add calibration from ${group.folderPath||'the root folder'}`} aria-label={`Add calibration from ${group.folderPath||'the root folder'}`} disabled={disabled} onClick={()=>onCreate(group)}><Plus size={18}/></button>
+          <button className="icon-button" title={`Add calibration from ${group.label}`} aria-label={`Add calibration from ${group.label}`} disabled={disabled} onClick={()=>onCreate(group)}><Plus size={18}/></button>
           <button className="cal-mobile-disclosure" style={{flex:1,minWidth:0}} aria-expanded={open} aria-controls={panel} onClick={()=>setExpanded(old=>({...old,[group.key]:!open}))}>
-            <span><strong>{group.label}</strong><small>{group.folderPath||'Selected root'} · {group.files.length} {group.files.length===1?'file':'files'} · {group.entries.length} {group.entries.length===1?'calibration':'calibrations'}</small></span><ChevronIndicator direction={open?'down':'right'}/>
+            <span><strong>{group.label}</strong><small>{group.folderPath==='Root folder'?'Filename series from selected root':group.folderPath||'Selected root'} · {group.files.length} {group.files.length===1?'file':'files'} · {group.entries.length} {group.entries.length===1?'calibration':'calibrations'}</small></span><ChevronIndicator direction={open?'down':'right'}/>
           </button>
         </div>
         <div id={panel} hidden={!open}>{open&&<>
