@@ -59,7 +59,7 @@ function Lab() {
   }
   const [publishedRefresh,setPublishedRefresh]=useState(0)
   const job=state?.jobs?.[0],running=['queued','running'].includes(job?.state)
-  const runProgress=running?job?.progress?.match(/Run (\d+)\/(\d+):/):null
+  const watchRoot=state?.selections?.[instrument]||state?.selection||{}
   return <div className="cal-site atmos-controls">
     <header className="cal-masthead"><a className="icon-button cal-brand-mark" href={`/?instrument=${encodeURIComponent(instrument)}`} aria-label="CalLib main library page" title="CalLib main library page"><img src="/cal-lib-logo.png" alt=""/></a><div><strong>CalLib</strong><span>Calibration library / {instrument}</span></div>
       <nav aria-label="Library"><Dropdown aria-label={`${instrument} menu`} placeholder="Menu" menuPortal value="" onChange={value=>{
@@ -86,20 +86,14 @@ function Lab() {
     <div className="lab-tools"><ManualCalibrations instrument={instrument} theme={theme} onSaved={setInstrument} onMenuChange={setManualMenu}/>
       <WorkbookImports instrument={instrument} theme={theme} onMenuChange={setWorkbookMenu}/>
     </div>
-    {instrument==='GC-MS'&&running&&<section className="lab-intake-status" aria-label="Ingestion status" aria-live="polite" aria-atomic="true">
-      <strong>{error?'Intake status unavailable':running?'Importing calibration files':job?.state==='error'||job?.state==='interrupted'?'Import needs attention':job?.state==='complete'?'Import complete':'Waiting for folder sync'}</strong>
-      {running&&<progress aria-label="Calibration file ingestion" max={runProgress?Number(runProgress[2]):undefined} value={runProgress?Math.max(0,Number(runProgress[1])-1):undefined}/>}
-      <span>{error|| (running?job.progress:job?.state==='complete'?`${job.result?.runs??0} runs checked; ${job.result?.created??0} new drafts; ${job.result?.reused??0} existing drafts preserved.`:job?.error||'New files appear after the source folder syncs.')}</span>
-      {job?.state==='complete'&&(job.result?.failed>0||job.result?.searchFailed>0)&&<span role="alert">{job.result.failed||0} failed runs; {job.result.searchFailed||0} NIST searches need retry. See intake console for details.</span>}
-      {state?.watch_error?.error&&<span role="alert">Folder watcher: {state.watch_error.error}</span>}
-      <small>{state?.source.ids?.length??0} source files · Last sync: {state?.source.synced_at?new Date(state.source.synced_at).toLocaleString():'Waiting'}</small>
-    </section>}
     <div hidden={view!=='curves'||instrument!=='GC-MS'}><CalibrationLibrary theme={theme} lab onDiscover={scan} refreshToken={`${job?.completed_at||''}:${publishedRefresh}`} onMenuChange={setLibraryMenu}/></div>
     <div hidden={instrument!=='GC-MS'}>{view==='columns'&&<LabColumns/>}</div>
     {instrument!=='GC-MS'&&<main className="cal-main"><h1>{instrument}</h1>{branchError?<p role="alert">{branchError}</p>:!branch?<p role="status">Loading database...</p>:<><p role="status">{branch.entries.length} file-derived calibrations</p>{branch.entries.length?<table><thead><tr><th>Compound</th><th>Name</th></tr></thead><tbody>{branch.entries.map(entry=><tr key={entry.id}><td>{entry.compound}</td><td>{entry.name}</td></tr>)}</tbody></table>:<p>No file-derived calibrations yet.</p>}<p className="cal-subtle">Instrument-specific file import is not available yet.</p></>}</main>}
-    <footer className="lab-console" hidden={instrument!=='GC-MS'}><details><summary>Intake console · {state?.source.ids?.length??0} runs · {running?'Scanning':job?.state||'Waiting'}</summary>
-      <div className="lab-metrics"><span>{state?.source.ids?.length??0} source runs</span><span>{nist?.available?'NIST connected':nist===null?'Checking NIST':'NIST needs attention'}</span>
-        <span>Last folder sync: {state?.source.synced_at?new Date(state.source.synced_at).toLocaleString():'Waiting'}</span></div>
+    <footer className="lab-console" hidden={instrument!=='GC-MS'} aria-label="CalLib output">
+      <div className="lab-console-heading"><div><strong>Output</strong><span>GC-MS intake</span></div><span className="lab-console-state">{running?'Importing':job?.state||'Waiting'}</span></div>
+      <div className="lab-console-path"><small>Watch root</small><code title={watchRoot.path||'No GC-MS intake folder selected'}>{watchRoot.path||'No GC-MS intake folder selected'}</code></div>
+      <div className="lab-metrics"><span>{watchRoot.file_count??0} files seen</span><span>{state?.source?.ids?.length??0} runs discovered</span><span>{nist?.available?'NIST connected':nist===null?'Checking NIST':'NIST needs attention'}</span>
+        <span>Last folder sync: {state?.source?.synced_at?new Date(state.source.synced_at).toLocaleString():'Waiting'}</span></div>
       {job&&<p role="status">{running?job.progress:job.state==='complete'?`${job.result?.runs??0} runs / ${job.result?.series??0} sequences / ${job.result?.peaks??0} proposed areas. ${job.result?.created??0} new drafts; ${job.result?.reused??0} existing drafts preserved.`:job.error||job.state}</p>}
       {job?.result?.failed>0&&<p>{job.result.failed} run(s) could not be converted.</p>}
       {job?.result?.searchFailed>0&&<p>{job.result.searchFailed} peak searches need a NIST retry.</p>}
@@ -108,7 +102,7 @@ function Lab() {
       {nist?.error&&<p className="cal-alert">{nist.error}</p>}
       {job?.sequences?.length>0&&<details><summary>Detected sequences ({job.sequences.length})</summary><div className="cal-table-wrap" tabIndex={0}><table><thead><tr><th>Series</th><th>Acquired</th><th>Runs</th><th>Review flags</th></tr></thead>
         <tbody>{job.sequences.map(g=><tr key={g.key}><td>{g.label} <WarningFlag message={[...g.warnings,...(g.file_warnings||[]).map(f=>`${f.filename}: ${f.message}`)].join('; ')}/></td><td>{g.start?.replace('T',' ')}<small>{g.end?.replace('T',' ')}</small></td><td>{g.runs}</td><td>{(g.file_warnings||[]).map(f=><div key={f.id}>{f.filename} <WarningFlag message={f.message}/></div>)}</td></tr>)}</tbody></table></div></details>}
-    </details></footer>
+    </footer>
   </div>
 }
 createRoot(document.getElementById('root')).render(<StrictMode><AppErrorBoundary>{location.pathname==='/inspection/'?<InspectionSession/>:<Lab/>}</AppErrorBoundary></StrictMode>)
