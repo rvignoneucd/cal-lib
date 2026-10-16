@@ -156,7 +156,8 @@
 .cal-sort-heading { display:inline-flex; align-items:center; gap:4px; }
 .cal-compound-info { min-width:200px; max-width:340px; font-size:12px; margin-top:0; }
 .cal-compound-info img { display:block; object-fit:contain; max-width:100%; }
-.cal-compound-info-structure { margin:0; width:512px; min-width:512px; max-width:512px; height:409px; display:flex; align-items:flex-start; justify-content:center; }
+.cal-compound-info-structure { position:relative; margin:0; width:512px; min-width:512px; max-width:512px; height:409px; display:flex; align-items:flex-start; justify-content:center; }
+.cal-prewarmed-peak { position:absolute; inset:0; }
 .cal-compound-info-structure img { width:512px; height:409px; flex:none; }
 .cal-peak-preview { width:512px; max-width:100%; height:409px; }
 .cal-peak-preview .cal-plot { width:100%; height:100%; min-height:0; }

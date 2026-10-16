@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from difflib import SequenceMatcher
 from pathlib import Path
 
-from fastapi import Body, Depends, HTTPException, Query
+from fastapi import BackgroundTasks, Body, Depends, HTTPException, Query
 
 from .area_review import auto_area_needs_review
 from .gcms_calibration import fit_points, peak_identity
@@ -281,7 +281,7 @@ class CalibrationStore:
                        (record['preparation_id'], record['project_id'], record['id'], json.dumps(record, allow_nan=False)))
 
 
-def register_calibration_library(app, *, current_user, authorize, metadata, annotations, path, method_metadata=None, literal_search=False):
+def register_calibration_library(app, *, current_user, authorize, metadata, annotations, path, method_metadata=None, literal_search=False, on_publish=None):
     store = CalibrationStore(path)
     column_record = register_columns(app, current_user=current_user, authorize=authorize, path=path)
 
@@ -525,7 +525,7 @@ def register_calibration_library(app, *, current_user, authorize, metadata, anno
         return {**store.get(id), 'editable': True}
 
     @app.post('/api/calibration-library/{id}/publish')
-    def publish(id: str, payload: dict = Body(...), user: dict = Depends(current_user)):
+    def publish(id: str, background_tasks: BackgroundTasks, payload: dict = Body(...), user: dict = Depends(current_user)):
         draft, _ = access(id, user, 'editor')
         if payload.get('revision') != draft['revision']:
             raise HTTPException(409, 'Calibration changed. Reload before publishing.')
@@ -547,6 +547,8 @@ def register_calibration_library(app, *, current_user, authorize, metadata, anno
         version['version'] = digest(version)[:24]
         draft['revision'] += 1
         store.save(draft, payload['revision'], version)
+        if on_publish:
+            background_tasks.add_task(on_publish, copy.deepcopy(version))
         return {**draft, 'versions': [version, *versions], 'editable': True}
 
     @app.post('/api/calibration-library/{id}/variants')

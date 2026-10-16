@@ -30,6 +30,7 @@ from .calibration_inspection import inspection_manifest
 from .calibration_method import acquisition_profile, acquisition_timing
 from .calibration_signal import signal_endpoints
 from .calibration_baseline import baseline_bounds
+from .chromatogram_preview import cached_chromatogram
 from .gcms_calibration import fit_points
 from .parsers.gcms_agilent import parse_chromatograms
 from .library.mspepsearch_bridge import search_spectrum_with_mspepsearch, hits_to_dicts, remote_status
@@ -603,7 +604,7 @@ async def same_origin(request, call_next):
     response = await call_next(request)
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['X-Frame-Options'] = 'DENY'
-    response.headers['Cache-Control'] = 'no-store' if request.url.path.startswith('/api/') else 'no-cache'
+    response.headers.setdefault('Cache-Control', 'no-store' if request.url.path.startswith('/api/') else 'no-cache')
     return response
 
 
@@ -1097,12 +1098,26 @@ def precompute(payload: dict = Body(...)):
 
 
 @app.get('/api/datasets/{id}/chromatogram')
-def chromatogram(id: str):
+def chromatogram(id: str, request: Request):
     try:
-        _, data = points(id, 'TIC')
+        content, etag = cached_chromatogram(convert(id))
     except ValueError as error:
         raise HTTPException(422, str(error)) from error
-    return {'points': [vars(p) for p in data]}
+    # Run IDs are hashes of the source content. Changed runs get new URLs.
+    headers = {'Cache-Control': 'private, max-age=86400', 'ETag': etag}
+    if request.headers.get('if-none-match') == etag:
+        return Response(status_code=304, headers=headers)
+    return Response(content, media_type='application/json', headers=headers)
+
+
+def warm_published_chromatograms(version):
+    for id in dict.fromkeys(item['dataset_id'] for item in version.get('fit', {}).get('evidence', [])):
+        try:
+            cached_chromatogram(convert(id))
+        except Exception:
+            # A missing source must not undo a valid published calibration.
+            import logging
+            logging.getLogger(__name__).warning('Could not warm chromatogram %s', id, exc_info=True)
 
 
 @app.get('/api/lab/inspection-run/{run_id}')
@@ -1300,7 +1315,8 @@ def save_annotations(id: str, payload: dict = Body(...)):
 
 register_calibration_library(app, current_user=actor, authorize=authorize, metadata=metadata,
                              annotations=annotations, method_metadata=method_metadata,
-                             path=lambda: STATE / 'calibration_library.sqlite', literal_search=True)
+                             path=lambda: STATE / 'calibration_library.sqlite', literal_search=True,
+                             on_publish=warm_published_chromatograms)
 
 if (WEB / 'assets').is_dir():
     app.mount('/assets', StaticFiles(directory=WEB / 'assets'), name='assets')

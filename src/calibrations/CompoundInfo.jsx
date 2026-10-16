@@ -1,32 +1,37 @@
 import {useEffect,useRef,useState} from 'react'
-import {apiGet} from '../api/client'
+import {apiGet,getAuthToken} from '../api/client'
 import Plot from '../components/LazyPlotlyPlot'
+import {createChromatogramCache} from './chromatogramCache.js'
 
 const finite = value => Number.isFinite(Number(value)) ? Number(value) : null
-const chromatogramCache = new Map()
-const loadChromatogram = datasetId => {
-  if(!chromatogramCache.has(datasetId)) chromatogramCache.set(datasetId,apiGet(`/datasets/${encodeURIComponent(datasetId)}/chromatogram?trace=TIC&max_points=20000`))
-  return chromatogramCache.get(datasetId)
-}
+const chromatogramCache = createChromatogramCache(
+  datasetId=>apiGet(`/datasets/${encodeURIComponent(datasetId)}/chromatogram?trace=TIC&max_points=20000`),
+  {scope:getAuthToken},
+)
 
 function PeakTracePreview({peak,peaks=[],theme,stacked=false}) {
   const selectedPeaks=(peaks.length?peaks:[peak]).filter(Boolean)
-  const datasetKey=selectedPeaks.map(item=>item.dataset_id).join('|')
-  const [traces,setTraces]=useState([]),[error,setError]=useState('')
+  const datasetKey=JSON.stringify(selectedPeaks.map(({dataset_id,left,right,rt,concentration})=>[dataset_id,left,right,rt,concentration]))
+  const cachedTraces=()=>selectedPeaks.map(peak=>{
+    const cached=chromatogramCache.peek(peak.dataset_id)
+    return cached?{peak,points:cached.points||[]}:null
+  }).filter(Boolean)
+  const [traces,setTraces]=useState(cachedTraces),[error,setError]=useState(''),[attempt,setAttempt]=useState(0),[loading,setLoading]=useState(true)
   useEffect(()=>{
     let cancelled=false
-    setTraces([]);setError('')
-    if(!selectedPeaks.length){setError('Selected peak unavailable');return()=>{cancelled=true}}
-    Promise.allSettled(selectedPeaks.map(item=>loadChromatogram(item.dataset_id))).then(results=>{
+    setTraces(cachedTraces());setError('');setLoading(true)
+    if(!selectedPeaks.length){setError('Selected peak unavailable');setLoading(false);return()=>{cancelled=true}}
+    Promise.allSettled(selectedPeaks.map(item=>chromatogramCache.get(item.dataset_id))).then(results=>{
       const loaded=results.map((result,index)=>result.status==='fulfilled'?{peak:selectedPeaks[index],points:result.value.points||[]}:null).filter(Boolean)
       if(cancelled)return
+      setLoading(false)
       if(loaded.length)setTraces(loaded)
       else setError('Selected peak trace unavailable')
     })
     return()=>{cancelled=true}
-  },[datasetKey])
+  },[datasetKey,attempt])
   const boxClass='cal-peak-preview'
-  if(error)return <div className={boxClass} role="status"><small>{error}</small></div>
+  if(error)return <div className={boxClass} role="status"><small>{error}</small> <button className="cal-text-link" onClick={()=>setAttempt(value=>value+1)}>Retry</button></div>
   if(!traces.length)return <div className={boxClass} role="status"><small>Loading selected peak traces...</small></div>
   const active=stacked?null:(peak||selectedPeaks[0])
   const leftCandidates=selectedPeaks.map(item=>finite(item.left)).filter(value=>value!==null)
@@ -34,12 +39,12 @@ function PeakTracePreview({peak,peaks=[],theme,stacked=false}) {
   const left=active?finite(active.left):Math.min(...leftCandidates),right=active?finite(active.right):Math.max(...rightCandidates),apex=finite(active?.rt)
   if(!Number.isFinite(left)||!Number.isFinite(right))return <div className={boxClass} role="status"><small>Selected peak trace unavailable</small></div>
   const width=Math.max(right-left,0.04),padding=Math.max(width*.65,.08),start=left-padding,end=right+padding
-  const prepared=traces.map((trace,index)=>{
+  const prepared=traces.filter(trace=>!active||trace.peak.dataset_id===active.dataset_id).map((trace,index)=>{
     const points=trace.points.map(point=>({x:finite(point.x),y:finite(point.y)})).filter(point=>point.x!==null&&point.y!==null&&point.x>=start&&point.x<=end)
     const max=Math.max(1,...points.map(point=>point.y))
     return {...trace,index,points,rawMax:max}
   }).filter(trace=>trace.points.length)
-  if(!prepared.length)return <div className={boxClass} role="status"><small>Selected peak trace unavailable</small></div>
+  if(!prepared.length)return <div className={boxClass} role="status"><small>{loading?'Loading selected peak trace...':'Selected peak trace unavailable'}</small>{!loading&&<> <button className="cal-text-link" onClick={()=>setAttempt(value=>value+1)}>Retry</button></>}</div>
   const activeTrace=active?prepared.find(trace=>trace.peak.dataset_id===active.dataset_id)||prepared[0]:null
   const activeOriginal=activeTrace?traces.find(trace=>trace.peak.dataset_id===activeTrace.peak.dataset_id)?.points.map(point=>({x:finite(point.x),y:finite(point.y)})).filter(point=>point.x!==null&&point.y!==null&&point.x>=start&&point.x<=end)||[]:[]
   const maxOriginal=Math.max(1,...activeOriginal.map(point=>point.y))
@@ -59,7 +64,7 @@ function PeakTracePreview({peak,peaks=[],theme,stacked=false}) {
   </div>
 }
 
-export default function CompoundInfo({name,lookupName=name,theme,part='all',peak=null,peaks=[],stacked=false}) {
+export default function CompoundInfo({name,lookupName=name,theme,part='all',peak=null,peaks=[],previewPeaks=[],stacked=false}) {
   const root=useRef(null)
   const [visible,setVisible]=useState(false),[data,setData]=useState(null),[attempt,setAttempt]=useState(0)
   useEffect(()=>{
@@ -77,8 +82,11 @@ export default function CompoundInfo({name,lookupName=name,theme,part='all',peak
   const info=data?.info
   const showStructure=part!=='details'
   const showDetails=part!=='structure'
+  const prewarm=part==='structure'&&visible&&previewPeaks.length>0
+  const showPeak=!!peak||stacked
   return <div ref={root} className={`cal-compound-info cal-compound-info-${part}`}>
-    {showStructure&&((peak||stacked)?<PeakTracePreview peak={peak} peaks={peaks} theme={theme} stacked={stacked}/>:data?.found&&data.svg?<img width="350" height="350" alt={`Molecular structure of ${name}`} src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(data.svg[theme==='dark'?'dark':'light'])}`}/>:!data?<small>Loading PubChem...</small>:<><small>{data.message||'Structure unavailable'}</small><button className="cal-text-link" onClick={()=>setAttempt(a=>a+1)}>Retry</button></>)}
+    {prewarm&&<div className="cal-prewarmed-peak" aria-hidden={!showPeak} style={{visibility:showPeak?'visible':'hidden',pointerEvents:showPeak?'auto':'none'}}><PeakTracePreview peak={peak} peaks={previewPeaks} theme={theme} stacked={stacked||!peak}/></div>}
+    {showStructure&&(!showPeak?data?.found&&data.svg?<img width="350" height="350" alt={`Molecular structure of ${name}`} src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(data.svg[theme==='dark'?'dark':'light'])}`}/>:!data?<small>Loading PubChem...</small>:<><small>{data.message||'Structure unavailable'}</small><button className="cal-text-link" onClick={()=>setAttempt(a=>a+1)}>Retry</button></>:!prewarm&&<PeakTracePreview peak={peak} peaks={peaks} theme={theme} stacked={stacked}/>)}
     {showDetails&&(!data?<small>Loading PubChem...</small>:!data.found?<><small>{data.message}</small><button className="cal-text-link" onClick={()=>setAttempt(a=>a+1)}>Retry</button></>:<><dl><dt>PubChem CID</dt><dd><a href={info.pubchem_url} target="_blank" rel="noreferrer">{info.pubchem_cid}</a></dd><dt>Formula</dt><dd>{info.formula||'-'}</dd><dt>Mol. weight</dt><dd>{info.mol_weight||'-'}</dd><dt>IUPAC</dt><dd>{info.iupac_name||'-'}</dd></dl><small>NIST match used for PubChem lookup; peak identity not confirmed.</small>{info.description&&<details><summary>Compound information</summary><p>{info.description}</p><a href={info.source_url} target="_blank" rel="noreferrer">{info.source_name||'PubChem'}</a></details>}</>)}
   </div>
 }

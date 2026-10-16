@@ -29,9 +29,11 @@ class CalibrationLibraryTests(unittest.TestCase):
                 raise HTTPException(403, 'Read only')
             return {'id': id}, self.role
         self.app = FastAPI()
+        self.warmed = []
         register_calibration_library(self.app, current_user=lambda: {'id': 'analyst'}, authorize=authorize,
                                      metadata=lambda p, **kw: {'datasets': self.datasets},
-                                     annotations=lambda user, id: self.peaks[id], path=lambda: self.path)
+                                     annotations=lambda user, id: self.peaks[id], path=lambda: self.path,
+                                     on_publish=lambda version: self.warmed.append(version))
         self.client = TestClient(self.app)
         self.profile = {'instrument': 'GC-1', 'method': 'Method-1', 'column_model': 'DB-5', 'column_phase': '5% phenyl',
                         'column_length_m': '30', 'column_id_um': '250', 'column_film_um': '0.25',
@@ -65,6 +67,16 @@ class CalibrationLibraryTests(unittest.TestCase):
         reloaded = self.client.get(f"/api/calibration-library/{draft['id']}").json()
         self.assertTrue(reloaded['force_zero_manual'])
         self.assertAlmostEqual(reloaded['fit']['intercept'], 5)
+
+    def test_previews_warm_only_after_successful_publication(self):
+        draft = self.create()
+        response = self.client.post(f"/api/calibration-library/{draft['id']}/publish",
+                                    json={'revision': draft['revision'], 'confirmed': False})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(self.warmed, [])
+        published = self.publish(draft)
+        self.assertEqual(self.warmed, [published['versions'][0]])
+        self.assertEqual(CalibrationStore(lambda: self.path).get(draft['id'])['versions'][0], self.warmed[0])
 
     def test_external_curve_published_quantitation_and_search(self):
         draft = self.create()
